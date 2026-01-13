@@ -136,6 +136,8 @@
         let stack = [];
         const stackContainer = document.getElementById('stackContainer');
         const valueInput = document.getElementById('valueInput');
+        
+        // === OPERATION: core ===
         function updateDisplay() {
             stackContainer.innerHTML = '';
             if (stack.length === 0) {
@@ -149,6 +151,9 @@
                 });
             }
         }
+        // === END: core ===
+        
+        // === OPERATION: push ===
         function push() {
             const value = valueInput.value.trim();
             if (value === '') {
@@ -159,6 +164,9 @@
             valueInput.value = '';
             updateDisplay();
         }
+        // === END: push ===
+        
+        // === OPERATION: pop ===
         function pop() {
             if (stack.length === 0) {
                 alert('Stack is empty!');
@@ -168,16 +176,23 @@
             alert(`Popped: ${popped}`);
             updateDisplay();
         }
+        // === END: pop ===
+        
+        // === OPERATION: clear ===
         function clearStack() {
             stack = [];
             updateDisplay();
         }
+        // === END: clear ===
+        
+        // === OPERATION: core ===
         valueInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 push();
             }
         });
         updateDisplay();
+        // === END: core ===
     </script>
 </body>
 </html>

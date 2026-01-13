@@ -149,6 +149,8 @@
         let queue = [];
         const queueContainer = document.getElementById('queueContainer');
         const valueInput = document.getElementById('valueInput');
+        
+        // === OPERATION: core ===
         function updateDisplay() {
             queueContainer.innerHTML = '';
             if (queue.length === 0) {
@@ -162,6 +164,9 @@
                 });
             }
         }
+        // === END: core ===
+        
+        // === OPERATION: enqueue ===
         function enqueue() {
             const value = valueInput.value.trim();
             if (value === '') {
@@ -172,6 +177,9 @@
             valueInput.value = '';
             updateDisplay();
         }
+        // === END: enqueue ===
+        
+        // === OPERATION: dequeue ===
         function dequeue() {
             if (queue.length === 0) {
                 alert('Queue is empty!');
@@ -181,16 +189,23 @@
             alert(`Dequeued: ${dequeued}`);
             updateDisplay();
         }
+        // === END: dequeue ===
+        
+        // === OPERATION: clear ===
         function clearQueue() {
             queue = [];
             updateDisplay();
         }
+        // === END: clear ===
+        
+        // === OPERATION: core ===
         valueInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 enqueue();
             }
         });
         updateDisplay();
+        // === END: core ===
     </script>
 </body>
 </html>

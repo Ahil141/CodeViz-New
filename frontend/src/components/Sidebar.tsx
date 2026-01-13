@@ -1,6 +1,6 @@
-import { Home, BookOpen, Menu } from "lucide-react"
+import { Menu, Sparkles } from "lucide-react"
 
-export type Page = "home" | "learn-ds"
+export type Page = "home" | "learn-ds" | "smart-chat"
 
 interface SidebarProps {
   currentPage: Page
@@ -9,8 +9,9 @@ interface SidebarProps {
 
 function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   const menuItems = [
-    { id: "home" as Page, label: "Home", icon: Home },
-    { id: "learn-ds" as Page, label: "Learn DS", icon: BookOpen },
+    { id: "smart-chat" as Page, label: "Smart Chat", icon: Sparkles },
+    // { id: "home" as Page, label: "Home", icon: Home },
+    // { id: "learn-ds" as Page, label: "Learn DS (Legacy)", icon: BookOpen },
   ]
 
   return (
