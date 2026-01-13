@@ -1,0 +1,297 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Linked List
+### NAME: Singly Linked List
+### DESCRIPTION: Interactive Singly Linked List visualizer
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singly Linked List Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input, button {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        input {
+            flex: 1;
+            min-width: 150px;
+        }
+        button {
+            background: #4facfe;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #3d8fe0;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .list-container {
+            min-height: 300px;
+            border: 3px solid #4facfe;
+            border-radius: 10px;
+            padding: 30px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .node {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            animation: slideIn 0.3s ease;
+        }
+        .node-box {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px 0 0 8px;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .node-pointer {
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 16px;
+            min-width: 60px;
+            text-align: center;
+            position: relative;
+        }
+        .node-pointer::after {
+            content: '→';
+            margin-left: 10px;
+        }
+        .node:last-child .node-pointer::after {
+            content: 'null';
+            margin-left: 10px;
+        }
+        .list-empty {
+            color: #999;
+            font-style: italic;
+            margin: auto;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e0f7fa;
+            border-radius: 8px;
+            color: #006064;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Singly Linked List Visualizer</h1>
+        <div class="controls">
+            <input type="text" id="valueInput" placeholder="Enter value">
+            <input type="number" id="indexInput" placeholder="Index (for insert/delete)" min="0">
+            <button onclick="insertAtHead()">Insert at Head</button>
+            <button onclick="insertAtTail()">Insert at Tail</button>
+            <button onclick="insertAtIndex()">Insert at Index</button>
+            <button onclick="deleteByValue()">Delete by Value</button>
+            <button onclick="clearList()">Clear</button>
+        </div>
+        <div class="list-container" id="listContainer">
+            <div class="list-empty">Linked List is empty</div>
+        </div>
+        <div class="info">
+            <strong>Operations:</strong> Insert at Head/Tail/Index | Delete by Value<br>
+            <strong>Structure:</strong> Each node contains data and a pointer to the next node
+        </div>
+    </div>
+    <script>
+        class Node {
+            constructor(data) {
+                this.data = data;
+                this.next = null;
+            }
+        }
+        let head = null;
+        const listContainer = document.getElementById('listContainer');
+        const valueInput = document.getElementById('valueInput');
+        const indexInput = document.getElementById('indexInput');
+        function updateDisplay() {
+            listContainer.innerHTML = '';
+            if (head === null) {
+                listContainer.innerHTML = '<div class="list-empty">Linked List is empty</div>';
+                return;
+            }
+            let current = head;
+            while (current !== null) {
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                const dataBox = document.createElement('div');
+                dataBox.className = 'node-box';
+                dataBox.textContent = current.data;
+                const pointerBox = document.createElement('div');
+                pointerBox.className = 'node-pointer';
+                nodeDiv.appendChild(dataBox);
+                nodeDiv.appendChild(pointerBox);
+                listContainer.appendChild(nodeDiv);
+                current = current.next;
+            }
+        }
+        function insertAtHead() {
+            const value = valueInput.value.trim();
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            const newNode = new Node(value);
+            newNode.next = head;
+            head = newNode;
+            valueInput.value = '';
+            updateDisplay();
+        }
+        function insertAtTail() {
+            const value = valueInput.value.trim();
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            const newNode = new Node(value);
+            if (head === null) {
+                head = newNode;
+            } else {
+                let current = head;
+                while (current.next !== null) {
+                    current = current.next;
+                }
+                current.next = newNode;
+            }
+            valueInput.value = '';
+            updateDisplay();
+        }
+        function insertAtIndex() {
+            const value = valueInput.value.trim();
+            const index = parseInt(indexInput.value);
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            if (isNaN(index) || index < 0) {
+                alert('Please enter a valid index');
+                return;
+            }
+            if (index === 0) {
+                insertAtHead();
+                return;
+            }
+            const newNode = new Node(value);
+            let current = head;
+            for (let i = 0; i < index - 1; i++) {
+                if (current === null) {
+                    alert('Index out of bounds');
+                    return;
+                }
+                current = current.next;
+            }
+            if (current === null) {
+                alert('Index out of bounds');
+                return;
+            }
+            newNode.next = current.next;
+            current.next = newNode;
+            valueInput.value = '';
+            indexInput.value = '';
+            updateDisplay();
+        }
+        function deleteByValue() {
+            const value = valueInput.value.trim();
+            if (value === '') {
+                alert('Please enter a value to delete');
+                return;
+            }
+            if (head === null) {
+                alert('List is empty');
+                return;
+            }
+            if (head.data === value) {
+                head = head.next;
+                valueInput.value = '';
+                updateDisplay();
+                return;
+            }
+            let current = head;
+            while (current.next !== null && current.next.data !== value) {
+                current = current.next;
+            }
+            if (current.next === null) {
+                alert('Value not found');
+                return;
+            }
+            current.next = current.next.next;
+            valueInput.value = '';
+            updateDisplay();
+        }
+        function clearList() {
+            head = null;
+            updateDisplay();
+        }
+        valueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                insertAtTail();
+            }
+        });
+        updateDisplay();
+    </script>
+</body>
+</html>

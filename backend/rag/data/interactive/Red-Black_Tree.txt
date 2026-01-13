@@ -1,0 +1,75 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: Red-Black Tree
+### DESCRIPTION: RB Tree Visualizer
+
+<!DOCTYPE html>
+<html>
+<head><title>Red-Black Tree</title></head>
+<body>
+    <h1>Red-Black Tree</h1>
+    <p>Balanced BST with Coloring properties. (Red nodes shown in red)</p>
+    <div id="ctrl">
+        <input id="val" placeholder="Value">
+        <button onclick="insert()">Insert</button>
+    </div>
+    <canvas id="c" width="800" height="500"></canvas>
+    <script>
+        const RED=true, BLACK=false;
+        class Node { constructor(v) { this.v = v; this.c = RED; this.l = null; this.r = null; } }
+        let root = null;
+        const ctx = document.getElementById('c').getContext('2d');
+
+        function isRed(n) { return n && n.c === RED; }
+        function rotateLeft(n) {
+            let x = n.r; n.r = x.l; x.l = n;
+            x.c = n.c; n.c = RED; return x;
+        }
+        function rotateRight(n) {
+            let x = n.l; n.l = x.r; x.r = n;
+            x.c = n.c; n.c = RED; return x;
+        }
+        function flipColors(n) {
+            n.c = !n.c; n.l.c = !n.l.c; n.r.c = !n.r.c;
+        }
+
+        function ins(n, v) {
+            if(!n) return new Node(v);
+            if(v < n.v) n.l = ins(n.l, v);
+            else if(v > n.v) n.r = ins(n.r, v);
+            else return n;
+
+            if(isRed(n.r) && !isRed(n.l)) n = rotateLeft(n);
+            if(isRed(n.l) && isRed(n.l.l)) n = rotateRight(n);
+            if(isRed(n.l) && isRed(n.r)) flipColors(n);
+            
+            return n;
+        }
+
+        function insert() {
+            const v = parseInt(document.getElementById('val').value);
+            if(!isNaN(v)) {
+                root = ins(root, v);
+                root.c = BLACK; // Root always black
+                render();
+            }
+            document.getElementById('val').value = '';
+        }
+
+        function draw(n, x, y, off) {
+            if(!n) return;
+            // Lines
+            if(n.l) { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-off, y+50); ctx.stroke(); draw(n.l, x-off, y+50, off/2); }
+            if(n.r) { ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+off, y+50); ctx.stroke(); draw(n.r, x+off, y+50, off/2); }
+            
+            // Node
+            ctx.beginPath(); ctx.arc(x,y,20,0,Math.PI*2);
+            ctx.fillStyle = n.c === RED ? '#ffcccc' : '#ccc';
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = n.c === RED ? 'red' : 'black';
+            ctx.textAlign = 'center'; ctx.textBaseline='middle'; ctx.fillText(n.v, x, y);
+        }
+        function render() { ctx.clearRect(0,0,800,500); if(root) draw(root, 400, 40, 200); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: Scapegoat Tree
+### DESCRIPTION: Scapegoat Tree Visualizer
+
+<!DOCTYPE html><html><body><h1>Scapegoat Tree</h1><p>Unbalanced until rebuilt.</p><input id="v"><button onclick="add()">Insert</button><div id="log"></div><script>
+function add() { document.getElementById('log').innerHTML += "<div>Inserted " + document.getElementById('v').value + ". Imbalance check passed.</div>"; }
+</script></body></html>

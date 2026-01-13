@@ -1,0 +1,183 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Stack
+### NAME: Stack
+### DESCRIPTION: Interactive Stack visualizer demonstrating LIFO operations
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input, button {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        input {
+            flex: 1;
+            min-width: 150px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .stack-container {
+            min-height: 400px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+        }
+        .stack-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 200px;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stack-empty {
+            color: #999;
+            font-style: italic;
+            margin: auto;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Stack Visualizer</h1>
+        <div class="controls">
+            <input type="text" id="valueInput" placeholder="Enter value to push">
+            <button onclick="push()">Push</button>
+            <button onclick="pop()">Pop</button>
+            <button onclick="clearStack()">Clear</button>
+        </div>
+        <div class="stack-container" id="stackContainer">
+            <div class="stack-empty">Stack is empty</div>
+        </div>
+        <div class="info">
+            <strong>Operations:</strong> Push (add to top) | Pop (remove from top)<br>
+            <strong>Principle:</strong> LIFO (Last In, First Out)
+        </div>
+    </div>
+    <script>
+        let stack = [];
+        const stackContainer = document.getElementById('stackContainer');
+        const valueInput = document.getElementById('valueInput');
+        function updateDisplay() {
+            stackContainer.innerHTML = '';
+            if (stack.length === 0) {
+                stackContainer.innerHTML = '<div class="stack-empty">Stack is empty</div>';
+            } else {
+                stack.forEach((item, index) => {
+                    const element = document.createElement('div');
+                    element.className = 'stack-item';
+                    element.textContent = item;
+                    stackContainer.appendChild(element);
+                });
+            }
+        }
+        function push() {
+            const value = valueInput.value.trim();
+            if (value === '') {
+                alert('Please enter a value');
+                return;
+            }
+            stack.push(value);
+            valueInput.value = '';
+            updateDisplay();
+        }
+        function pop() {
+            if (stack.length === 0) {
+                alert('Stack is empty!');
+                return;
+            }
+            const popped = stack.pop();
+            alert(`Popped: ${popped}`);
+            updateDisplay();
+        }
+        function clearStack() {
+            stack = [];
+            updateDisplay();
+        }
+        valueInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                push();
+            }
+        });
+        updateDisplay();
+    </script>
+</body>
+</html>

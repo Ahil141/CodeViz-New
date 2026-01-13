@@ -1,0 +1,66 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Array
+### NAME: Dynamic Array
+### DESCRIPTION: Dynamic Array (Vector)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic Array</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .memory-block { border: 2px solid #666; padding: 10px; display: inline-flex; gap: 2px; background: #eee; }
+        .cell { width: 50px; height: 50px; background: white; border: 1px solid #999; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .cell.used { background: #4caf50; color: white; }
+        .info { margin: 20px 0; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>Dynamic Array (Vector/ArrayList)</h1>
+    <div class="info">
+        Size: <span id="size">0</span> | Capacity: <span id="cap">2</span>
+    </div>
+    <div>
+        <input id="val" placeholder="Value">
+        <button onclick="push()">Push</button>
+    </div>
+    <br>
+    <div id="container" class="memory-block"></div>
+    <script>
+        let data = [];
+        let capacity = 2;
+        
+        function render() {
+            const c = document.getElementById('container');
+            c.innerHTML = '';
+            document.getElementById('size').textContent = data.length;
+            document.getElementById('cap').textContent = capacity;
+            
+            for(let i=0; i<capacity; i++) {
+                const div = document.createElement('div');
+                div.className = 'cell';
+                if(i < data.length) {
+                    div.className += ' used';
+                    div.textContent = data[i];
+                }
+                c.appendChild(div);
+            }
+        }
+        
+        function push() {
+            const v = document.getElementById('val').value;
+            if(!v) return;
+            
+            if(data.length === capacity) {
+                capacity *= 2; // Resize
+                alert("Resizing! New Capacity: " + capacity);
+            }
+            
+            data.push(v);
+            render();
+            document.getElementById('val').value = '';
+        }
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: Binary Search Tree
+### DESCRIPTION: BST Visualizer
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body { font-family: sans-serif; text-align: center; }
+    canvas { border: 1px solid #eee; }
+</style>
+</head>
+<body>
+    <h1>Binary Search Tree (BST)</h1>
+    <input id="val" type="number" placeholder="Value">
+    <button onclick="add()">Insert</button>
+    <br><br>
+    <canvas id="c" width="800" height="500"></canvas>
+    <script>
+        class Node {
+            constructor(val) { this.val = val; this.left = null; this.right = null; this.x = 0; this.y = 0; }
+        }
+        let root = null;
+        const ctx = document.getElementById('c').getContext('2d');
+
+        function insert(node, val) {
+            if(!node) return new Node(val);
+            if(val < node.val) node.left = insert(node.left, val);
+            else if(val > node.val) node.right = insert(node.right, val);
+            return node;
+        }
+
+        function add() {
+            const v = parseInt(document.getElementById('val').value);
+            if(!isNaN(v)) { root = insert(root, v); render(); }
+            document.getElementById('val').value = '';
+        }
+
+        function drawNode(node, x, y, offset) {
+            if(!node) return;
+            node.x = x; node.y = y;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 20, 0, Math.PI*2);
+            ctx.fillStyle = 'white'; ctx.fill(); ctx.stroke();
+            ctx.fillStyle = 'black'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+            ctx.fillText(node.val, x, y);
+
+            if(node.left) {
+                ctx.moveTo(x, y+20); ctx.lineTo(x-offset, y+60-20); ctx.stroke();
+                drawNode(node.left, x-offset, y+60, offset/2);
+            }
+            if(node.right) {
+                ctx.moveTo(x, y+20); ctx.lineTo(x+offset, y+60-20); ctx.stroke();
+                drawNode(node.right, x+offset, y+60, offset/2);
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0,0,800,500);
+            if(root) drawNode(root, 400, 40, 200);
+        }
+    </script>
+</body>
+</html>

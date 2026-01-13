@@ -1,0 +1,38 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: B* Tree
+### DESCRIPTION: B* Tree Visualizer
+
+<!DOCTYPE html>
+<html>
+<head><style>
+.node { border: 1px solid black; padding: 5px; display: inline-block; background: #ddd; margin: 5px; }
+.key { display: inline-block; border-right: 1px solid #999; padding: 0 5px; }
+.key:last-child { border: none; }
+</style></head>
+<body>
+    <h1>B* Tree</h1>
+    <input id="val" placeholder="Value">
+    <button onclick="ins()">Insert</button>
+    <div id="c" style="margin-top:20px;"></div>
+    <script>
+        // Very simplified B* Tree rendering (Root only for demo)
+        let root = [];
+        const MAX = 4;
+        function ins() {
+            const v = parseInt(document.getElementById('val').value);
+            if(root.length < MAX) {
+                root.push(v);
+                root.sort((a,b)=>a-b);
+            } else {
+                alert("Split required (Visualizer simplified for demo)");
+            }
+            render();
+        }
+        function render() {
+            const html = root.map(k => `<span class="key">${k}</span>`).join('');
+            document.getElementById('c').innerHTML = `<div class="node">${html}</div>`;
+        }
+    </script>
+</body>
+</html>

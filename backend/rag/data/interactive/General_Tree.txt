@@ -1,0 +1,65 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: General Tree
+### DESCRIPTION: N-ary Tree Visualizer
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body { font-family: sans-serif; text-align: center; }
+    .tree ul { padding-top: 20px; position: relative; transition: all 0.5s; }
+    .tree li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; }
+    .tree li::before, .tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 1px solid #ccc; width: 50%; height: 20px; }
+    .tree li::after { right: auto; left: 50%; border-left: 1px solid #ccc; }
+    .tree li:only-child::after, .tree li:only-child::before { display: none; }
+    .tree li:only-child { padding-top: 0; }
+    .tree li:first-child::before, .tree li:last-child::after { border: 0 none; }
+    .tree li:last-child::before { border-right: 1px solid #ccc; border-radius: 0 5px 0 0; }
+    .tree li:first-child::after { border-radius: 5px 0 0 0; }
+    .tree ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 1px solid #ccc; width: 0; height: 20px; }
+    .tree li a { border: 1px solid #ccc; padding: 5px 10px; text-decoration: none; color: #666; font-family: arial, verdana, tahoma; font-size: 11px; display: inline-block; border-radius: 5px; transition: all 0.5s; background: white; }
+    .tree li a:hover, .tree li a:hover+ul li a { background: #c8e4f8; color: #000; border: 1px solid #94a0b4; }
+</style>
+</head>
+<body>
+    <h1>General / N-ary Tree</h1>
+    <div class="tree" id="tree">
+        <!-- Rendered via CSS Tree Logic -->
+    </div>
+    <div style="margin-top:20px;">
+        <button onclick="reset()">Reset Random</button>
+    </div>
+    <script>
+        function generateRandomTree(depth) {
+            if(depth === 0) return null;
+            const val = Math.floor(Math.random()*100);
+            const node = { val, children: [] };
+            const numChildren = Math.floor(Math.random() * 3); // 0-2 children
+            for(let i=0; i<numChildren; i++) {
+                const child = generateRandomTree(depth - 1);
+                if(child) node.children.push(child);
+            }
+            return node;
+        }
+
+        function renderNode(node) {
+            if(!node) return '';
+            let html = `<li><a href="#">${node.val}</a>`;
+            if(node.children.length > 0) {
+                html += '<ul>';
+                node.children.forEach(c => html += renderNode(c));
+                html += '</ul>';
+            }
+            html += '</li>';
+            return html;
+        }
+
+        function reset() {
+            const root = generateRandomTree(4);
+            document.getElementById('tree').innerHTML = `<ul>${renderNode(root)}</ul>`;
+        }
+        reset();
+    </script>
+</body>
+</html>

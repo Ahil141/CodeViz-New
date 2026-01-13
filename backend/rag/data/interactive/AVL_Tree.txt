@@ -1,0 +1,74 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Tree
+### NAME: AVL Tree
+### DESCRIPTION: AVL Tree Visualizer
+
+<!DOCTYPE html>
+<html>
+<head><title>AVL Tree</title></head>
+<body>
+    <h1>AVL Tree (Self-Balancing)</h1>
+    <p>Automatically balances height difference.</p>
+    <input id="val" type="number">
+    <button onclick="add()">Insert</button>
+    <div id="msg" style="color:blue; height:20px;"></div>
+    <canvas id="c" width="800" height="500" style="border:1px solid #ccc;"></canvas>
+    <script>
+        // Minified AVL Logic
+        class Node { constructor(v) { this.v = v; this.h = 1; this.l = null; this.r = null; } }
+        let root = null;
+        const ctx = document.getElementById('c').getContext('2d');
+
+        function h(n) { return n ? n.h : 0; }
+        function bal(n) { return n ? h(n.l) - h(n.r) : 0; }
+        function up(n) { n.h = 1 + Math.max(h(n.l), h(n.r)); return n; }
+        
+        function rotR(y) {
+            let x = y.l; let T2 = x.r;
+            x.r = y; y.l = T2;
+            up(y); up(x); return x;
+        }
+        function rotL(x) {
+            let y = x.r; let T2 = y.l;
+            y.l = x; x.r = T2;
+            up(x); up(y); return y;
+        }
+
+        function ins(n, v) {
+            if(!n) return new Node(v);
+            if(v < n.v) n.l = ins(n.l, v);
+            else if(v > n.v) n.r = ins(n.r, v);
+            else return n; // No duplicates
+            
+            up(n);
+            let b = bal(n);
+            
+            // LL
+            if(b > 1 && v < n.l.v) return rotR(n);
+            // RR
+            if(b < -1 && v > n.r.v) return rotL(n);
+            // LR
+            if(b > 1 && v > n.l.v) { n.l = rotL(n.l); return rotR(n); }
+            // RL
+            if(b < -1 && v < n.r.v) { n.r = rotR(n.r); return rotL(n); }
+            
+            return n;
+        }
+
+        function add() {
+            const v = parseInt(document.getElementById('val').value);
+            if(!isNaN(v)) { root = ins(root, v); render(); }
+            document.getElementById('val').value = '';
+        }
+
+        function draw(n, x, y, off) {
+            if(!n) return;
+            ctx.beginPath(); ctx.arc(x,y,20,0,7); ctx.stroke();
+            ctx.fillText(n.v, x-5, y+5);
+            if(n.l) { ctx.moveTo(x,y+20); ctx.lineTo(x-off,y+60); ctx.stroke(); draw(n.l, x-off, y+60, off/2); }
+            if(n.r) { ctx.moveTo(x,y+20); ctx.lineTo(x+off,y+60); ctx.stroke(); draw(n.r, x+off, y+60, off/2); }
+        }
+        function render() { ctx.clearRect(0,0,800,500); if(root) draw(root, 400, 40, 200); }
+    </script>
+</body>
+</html>

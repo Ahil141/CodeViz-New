@@ -1,0 +1,92 @@
+### DOCUMENT_TYPE: INTERACTIVE
+### TOPIC: Linked List
+### NAME: Circular Doubly Linked List
+### DESCRIPTION: CDLL Visualizer
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Circular Doubly Linked List</title>
+    <!-- Simplified variation of Circular with double arrows -->
+    <style>
+        /* Styles similar to Circular but with double arrows visual indications */
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .controls { margin-bottom: 20px; }
+        input, button { padding: 10px; font-size: 16px; margin: 5px; }
+        #canvas { border: 1px solid #ddd; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <h1>Circular Doubly Linked List</h1>
+    <div class="controls">
+        <input id="val" placeholder="Value">
+        <button onclick="add()">Add Node</button>
+        <button onclick="del()">Delete Last</button>
+    </div>
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let data = [];
+
+        function render() {
+            ctx.clearRect(0,0,600,400);
+            if(data.length === 0) {
+                ctx.fillText("Empty List", 280, 200);
+                return;
+            }
+            
+            const cx = 300, cy = 200, r = 120;
+            const step = (Math.PI*2)/data.length;
+            
+            // Draw Links
+            ctx.beginPath();
+            ctx.strokeStyle = '#007bff';
+            ctx.lineWidth = 2;
+            for(let i=0; i<data.length; i++) {
+                const angle = i*step;
+                const nextAngle = ((i+1)%data.length)*step;
+                const x1 = cx + Math.cos(angle)*r;
+                const y1 = cy + Math.sin(angle)*r;
+                const x2 = cx + Math.cos(nextAngle)*r;
+                const y2 = cy + Math.sin(nextAngle)*r;
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+            ctx.stroke();
+
+            // Draw Nodes
+            for(let i=0; i<data.length; i++) {
+                const angle = i*step;
+                const x = cx + Math.cos(angle)*r;
+                const y = cy + Math.sin(angle)*r;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 25, 0, Math.PI*2);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = 'black';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(data[i], x, y);
+            }
+            
+            ctx.fillStyle = '#666';
+            ctx.fillText("Arrows imply both directions (Next & Prev)", 300, 380);
+        }
+
+        function add() {
+            const v = document.getElementById('val').value;
+            if(v) { data.push(v); document.getElementById('val').value=''; render(); }
+        }
+        function del() {
+            data.pop(); render();
+        }
+        render();
+    </script>
+</body>
+</html>
