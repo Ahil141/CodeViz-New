@@ -1,8 +1,0 @@
-### DOCUMENT_TYPE: INTERACTIVE
-### TOPIC: Tree
-### NAME: Treap
-### DESCRIPTION: Treap Visualizer
-
-<!DOCTYPE html><html><body><h1>Treap</h1><p>BST + Heap Priority (Random)</p><input id="v"><button onclick="add()">Insert</button><div id="log"></div><script>
-function add() { document.getElementById('log').innerHTML += "<div>Inserted " + document.getElementById('v').value + " with random priority " + Math.floor(Math.random()*100) + "</div>"; }
-</script></body></html>

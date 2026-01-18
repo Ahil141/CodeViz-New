@@ -1,9 +1,0 @@
-### DOCUMENT_TYPE: INTERACTIVE
-### TOPIC: Tree
-### NAME: Splay Tree
-### DESCRIPTION: Splay Tree Visualizer
-
-<!DOCTYPE html><html><body><h1>Splay Tree</h1><input id="v"><button onclick="add()">Insert & Splay</button><div id="log"></div><script>
-// Dummy impl for Splay - just mentions it moves accessed item to root
-function add() { document.getElementById('log').innerHTML += "<div>Inserted " + document.getElementById('v').value + " and splayed to root (Conceptual).</div>"; }
-</script></body></html>
