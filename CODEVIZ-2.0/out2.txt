@@ -1,0 +1,36 @@
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.11) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\services\llm_service.py:1: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+Traceback (most recent call last):
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\services\llm_service.py", line 42, in generate_response
+    response = self.model.generate_content(final_prompt)
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\generativeai\generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\ai\generativelanguage_v1beta\services\generative_service\client.py", line 835, in generate_content
+    response = rpc(
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
+    return wrapped_func(*args, **kwargs)
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\retry\retry_unary.py", line 294, in retry_wrapped_func
+    return retry_target(
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\retry\retry_unary.py", line 156, in retry_target
+    next_sleep = _retry_error_helper(
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\retry\retry_base.py", line 214, in _retry_error_helper
+    raise final_exc from source_exc
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\retry\retry_unary.py", line 147, in retry_target
+    result = target()
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\venv\lib\site-packages\google\api_core\grpc_helpers.py", line 77, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.NotFound: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Testing Gemini Service...
+Error generating response from Gemini: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+Response: Error: Failed to generate response. Details: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
