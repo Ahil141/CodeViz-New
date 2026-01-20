@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\run_debug.py", line 9, in <module>
+    from app.main import app
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\main.py", line 4, in <module>
+    from app.api.main import api_router
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\api\main.py", line 2, in <module>
+    from app.api.endpoints import chat
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\api\endpoints\chat.py", line 13, in <module>
+    from app.services.llm_service import llm_service
+  File "D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\backend\app\services\llm_service.py", line 2, in <module>
+    from google import genai
+ImportError: cannot import name 'genai' from 'google' (unknown location)
