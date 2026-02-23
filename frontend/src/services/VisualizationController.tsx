@@ -2,6 +2,20 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 
 type Tab = 'chat' | 'editor' | 'visualizer';
 
+interface CodeBlock {
+    language: string;
+    code: string;
+}
+
+interface BackendResponse {
+    code_blocks?: CodeBlock[];
+    code?: string;
+    visualization_type?: string;
+    implementation_code?: {
+        code: string;
+    };
+}
+
 interface VisualizationContextType {
     activeTab: Tab;
     setActiveTab: (tab: Tab) => void;
@@ -9,7 +23,7 @@ interface VisualizationContextType {
     setVisualizationType: (type: string | null) => void;
     code: string;
     setCode: (code: string) => void;
-    processBackendResponse: (data: any) => void;
+    processBackendResponse: (data: BackendResponse) => void;
     error: string | null;
     setError: (error: string | null) => void;
     output: string | null;
@@ -28,7 +42,7 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
     const [output, setOutput] = useState<string | null>(null);
     const [implementationCode, setImplementationCode] = useState<string | null>(null);
 
-    const processBackendResponse = (data: any) => {
+    const processBackendResponse = (data: BackendResponse) => {
         try {
             console.log("DEBUG: processBackendResponse received:", JSON.stringify(data, null, 2));
 
@@ -42,7 +56,7 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
                 let js = '';
                 let hasWebCode = false;
 
-                data.code_blocks.forEach((block: any) => {
+                data.code_blocks.forEach((block: CodeBlock) => {
                     const lang = block.language.toLowerCase();
                     if (lang === 'html') { html = block.code; hasWebCode = true; }
                     else if (lang === 'css') { css = block.code; hasWebCode = true; }
@@ -76,7 +90,7 @@ ${js}
                     }
                 } else {
                     // Fallback to simple join for other languages (e.g. Python)
-                    const combinedCode = data.code_blocks.map((block: any) =>
+                    const combinedCode = data.code_blocks.map((block: CodeBlock) =>
                         `// [${block.language.toUpperCase()}]\n${block.code}`
                     ).join('\n\n');
                     setCode(combinedCode);
@@ -135,6 +149,7 @@ ${js}
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useVisualization = () => {
     const context = useContext(VisualizationContext);
     if (context === undefined) {

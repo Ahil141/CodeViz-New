@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BaseVisualizer } from '../dataStructures/BaseVisualizer';
 import { Play, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,29 +21,7 @@ export const SortingAlgorithms = () => {
 
     const currentState = history[currentStep];
 
-    useEffect(() => {
-        handleGenerateArray();
-    }, [algorithm]);
-
-    useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 50); // Fast speed for algorithms
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
-
-    const addToHistory = (steps: SortingState[]) => {
-        setHistory(steps);
-        setCurrentStep(0);
-        setIsPlaying(true);
-    };
-
-    const handleGenerateArray = () => {
+    const handleGenerateArray = useCallback(() => {
         const newArr = Array.from({ length: 20 }, () => Math.floor(Math.random() * 80) + 10);
         setHistory([{
             array: newArr,
@@ -54,7 +32,40 @@ export const SortingAlgorithms = () => {
         }]);
         setCurrentStep(0);
         setIsPlaying(false);
+    }, [algorithm]);
+
+    const addToHistory = (steps: SortingState[]) => {
+        setHistory(steps);
+        setCurrentStep(0);
+        setIsPlaying(true);
     };
+
+    // Initial generation
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        handleGenerateArray();
+    }, [handleGenerateArray]);
+
+    // Playback Logic
+    useEffect(() => {
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 50); // Fast speed for algorithms
+
+        return () => clearInterval(interval);
+    }, [isPlaying, history.length]);
 
     const runBubbleSort = (arr: number[]) => {
         const steps: SortingState[] = [];
@@ -163,7 +174,7 @@ export const SortingAlgorithms = () => {
         steps.push({ array: [...arr], comparedIndices: [], swappedIndices: [], sortedIndices: [0], message: 'Starting Insertion Sort...' });
 
         for (let i = 1; i < arr.length; i++) {
-            let key = arr[i];
+            const key = arr[i];
             let j = i - 1;
 
             steps.push({
@@ -251,7 +262,21 @@ export const SortingAlgorithms = () => {
 
                     <select
                         value={algorithm}
-                        onChange={(e) => setAlgorithm(e.target.value as any)}
+                        onChange={(e) => {
+                            const newAlgo = e.target.value as 'bubble' | 'selection' | 'insertion';
+                            setAlgorithm(newAlgo);
+                            // Generate new array immediately when algorithm changes
+                            const newArr = Array.from({ length: 20 }, () => Math.floor(Math.random() * 80) + 10);
+                            setHistory([{
+                                array: newArr,
+                                comparedIndices: [],
+                                swappedIndices: [],
+                                sortedIndices: [],
+                                message: `Generated random array on ${newAlgo === 'insertion' ? 'Insertion' : newAlgo === 'bubble' ? 'Bubble' : 'Selection'} Sort.`
+                            }]);
+                            setCurrentStep(0);
+                            setIsPlaying(false);
+                        }}
                         className="px-2 py-1 border rounded text-sm"
                     >
                         <option value="bubble">Bubble Sort</option>

@@ -72,16 +72,24 @@ export const HeapVisualizer = () => {
     const renderNodes = generateNodes(currentState.array);
 
     useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 800);
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 800);
+
         return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
+    }, [isPlaying, history.length]);
 
     const addToHistory = (steps: HeapState[]) => {
         const base = history.slice(0, currentStep + 1);

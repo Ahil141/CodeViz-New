@@ -17,7 +17,7 @@ export const MonacoEditor = ({
     const editorRef = useRef(null);
 
     const handleEditorDidMount: OnMount = (editor) => {
-        // @ts-ignore
+        // @ts-expect-error: editorRef is not yet typed for Monaco editor instance
         editorRef.current = editor;
     };
 

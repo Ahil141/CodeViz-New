@@ -32,8 +32,16 @@ const layoutTree = (node: TreeNode | null, x: number, y: number, level: number):
     return newNode;
 };
 
+interface TreeEdge {
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
 // Flatten tree for rendering
-const flattenTree = (node: TreeNode | null, nodes: TreeNode[] = [], edges: { id: string, x1: number, y1: number, x2: number, y2: number }[] = []): { nodes: TreeNode[], edges: any[] } => {
+const flattenTree = (node: TreeNode | null, nodes: TreeNode[] = [], edges: TreeEdge[] = []): { nodes: TreeNode[], edges: TreeEdge[] } => {
     if (!node) return { nodes, edges };
 
     nodes.push(node);
@@ -73,16 +81,24 @@ export const BinaryTreeVisualizer = () => {
     const { nodes: renderNodes, edges: renderEdges } = flattenTree(rootWithLayout);
 
     useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 1000);
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 1000);
+
         return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
+    }, [isPlaying, history.length]);
 
     const addToHistory = (newState: TreeState) => {
         const newHistory = [...history.slice(0, currentStep + 1), newState];

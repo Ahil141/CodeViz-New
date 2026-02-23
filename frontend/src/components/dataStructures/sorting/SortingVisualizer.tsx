@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BaseVisualizer } from '../BaseVisualizer';
 import { Play, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,30 +21,7 @@ export const SortingVisualizer = () => {
 
     const currentState = history[currentStep];
 
-    useEffect(() => {
-        // Initial random array
-        handleGenerateArray();
-    }, []);
-
-    useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 100); // 100ms for faster sorting viz
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
-
-    const addToHistory = (steps: SortingState[]) => {
-        setHistory(steps);
-        setCurrentStep(0);
-        setIsPlaying(true);
-    };
-
-    const handleGenerateArray = () => {
+    const handleGenerateArray = useCallback(() => {
         const newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 80) + 10);
         setHistory([{
             array: newArr,
@@ -55,7 +32,39 @@ export const SortingVisualizer = () => {
         }]);
         setCurrentStep(0);
         setIsPlaying(false);
+    }, []);
+
+    const addToHistory = (steps: SortingState[]) => {
+        setHistory(steps);
+        setCurrentStep(0);
+        setIsPlaying(true);
     };
+
+    useEffect(() => {
+        // Initial random array - safe synchronous update for initialization
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        handleGenerateArray();
+    }, [handleGenerateArray]);
+
+    useEffect(() => {
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 100); // 100ms for faster sorting viz
+
+        return () => clearInterval(interval);
+    }, [isPlaying, history.length]);
 
     const runBubbleSort = () => {
         const arr = [...currentState.array];
@@ -214,7 +223,7 @@ export const SortingVisualizer = () => {
 
                     <select
                         value={algorithm}
-                        onChange={(e) => setAlgorithm(e.target.value as any)}
+                        onChange={(e) => setAlgorithm(e.target.value as 'bubble' | 'selection')}
                         className="px-2 py-1 border rounded text-sm"
                     >
                         <option value="bubble">Bubble Sort</option>

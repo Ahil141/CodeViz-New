@@ -22,16 +22,24 @@ export const ArrayVisualizer = () => {
 
     // Playback Logic
     useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 1000);
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 1000);
+
         return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
+    }, [isPlaying, history.length]);
 
     const addToHistory = (newState: ArrayState) => {
         const newHistory = [...history.slice(0, currentStep + 1), newState];

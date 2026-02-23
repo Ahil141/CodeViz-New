@@ -1,0 +1,353 @@
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\algorithms\SortingAlgorithms.tsx
+  Error (25:9): Error: Cannot access variable before it is declared
+
+`handleGenerateArray` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\algorithms\SortingAlgorithms.tsx:25:9
+  23 |
+  24 |     useEffect(() => {
+> 25 |         handleGenerateArray();
+     |         ^^^^^^^^^^^^^^^^^^^ `handleGenerateArray` accessed before it is declared
+  26 |     }, [algorithm]);
+  27 |
+  28 |     useEffect(() => {
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\algorithms\SortingAlgorithms.tsx:46:5
+  44 |     };
+  45 |
+> 46 |     const handleGenerateArray = () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |         const newArr = Array.from({ length: 20 }, () => Math.floor(Math.random() * 80) + 10);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |         setHistory([{
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |         setIsPlaying(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |     };
+     | ^^^^^^^ `handleGenerateArray` is declared here
+  58 |
+  59 |     const runBubbleSort = (arr: number[]) => {
+  60 |         const steps: SortingState[] = []; [react-hooks/immutability]
+  Warning (26:8): React Hook useEffect has a missing dependency: 'handleGenerateArray'. Either include it or remove the dependency array. [react-hooks/exhaustive-deps]
+  Error (29:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (166:17): 'key' is never reassigned. Use 'const' instead. [prefer-const]
+  Error (254:73): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\array\ArrayVisualizer.tsx
+  Error (25:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (31:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\array\ArrayVisualizer.tsx:31:13
+  29 |             }, 1000);
+  30 |         } else if (currentStep >= history.length - 1) {
+> 31 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |         }
+  33 |         return () => clearInterval(interval);
+  34 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\circularLinkedList\CircularLinkedListVisualizer.tsx
+  Error (29:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (35:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\circularLinkedList\CircularLinkedListVisualizer.tsx:35:13
+  33 |             }, 1000);
+  34 |         } else if (currentStep >= history.length - 1) {
+> 35 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |         }
+  37 |         return () => clearInterval(interval);
+  38 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+  Error (61:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+  Error (99:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\circularQueue\CircularQueueVisualizer.tsx
+  Error (36:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (42:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\circularQueue\CircularQueueVisualizer.tsx:42:13
+  40 |             }, 1000);
+  41 |         } else if (currentStep >= history.length - 1) {
+> 42 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  43 |         }
+  44 |         return () => clearInterval(interval);
+  45 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\deque\DequeVisualizer.tsx
+  Error (23:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (29:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\deque\DequeVisualizer.tsx:29:13
+  27 |             }, 1000);
+  28 |         } else if (currentStep >= history.length - 1) {
+> 29 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |         }
+  31 |         return () => clearInterval(interval);
+  32 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\doublyLinkedList\DoublyLinkedListVisualizer.tsx
+  Error (29:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (35:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\doublyLinkedList\DoublyLinkedListVisualizer.tsx:35:13
+  33 |             }, 1000);
+  34 |         } else if (currentStep >= history.length - 1) {
+> 35 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |         }
+  37 |         return () => clearInterval(interval);
+  38 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+  Error (61:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+  Error (99:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\graph\GraphVisualizer.tsx
+  Error (43:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (49:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\graph\GraphVisualizer.tsx:49:13
+  47 |             }, 1000);
+  48 |         } else if (currentStep >= history.length - 1) {
+> 49 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  50 |         }
+  51 |         return () => clearInterval(interval);
+  52 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\heap\HeapVisualizer.tsx
+  Error (75:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (81:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\heap\HeapVisualizer.tsx:81:13
+  79 |             }, 800);
+  80 |         } else if (currentStep >= history.length - 1) {
+> 81 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |         }
+  83 |         return () => clearInterval(interval);
+  84 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\linkedList\SinglyLinkedListVisualizer.tsx
+  Error (30:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (36:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\linkedList\SinglyLinkedListVisualizer.tsx:36:13
+  34 |             }, 1000);
+  35 |         } else if (currentStep >= history.length - 1) {
+> 36 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |         }
+  38 |         return () => clearInterval(interval);
+  39 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+  Error (62:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+  Error (101:13): 'newNodes' is never reassigned. Use 'const' instead. [prefer-const]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\queue\QueueVisualizer.tsx
+  Error (24:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (30:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\queue\QueueVisualizer.tsx:30:13
+  28 |             }, 1000);
+  29 |         } else if (currentStep >= history.length - 1) {
+> 30 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |         }
+  32 |         return () => clearInterval(interval);
+  33 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\searching\SearchingVisualizer.tsx
+  Error (28:9): Error: Cannot access variable before it is declared
+
+`handleGenerateArray` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\searching\SearchingVisualizer.tsx:28:9
+  26 |
+  27 |     useEffect(() => {
+> 28 |         handleGenerateArray();
+     |         ^^^^^^^^^^^^^^^^^^^ `handleGenerateArray` accessed before it is declared
+  29 |     }, [algorithm]);
+  30 |
+  31 |     useEffect(() => {
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\searching\SearchingVisualizer.tsx:49:5
+  47 |     };
+  48 |
+> 49 |     const handleGenerateArray = () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 50 |         let newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 99) + 1);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 51 |         if (algorithm === 'binary') {
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 64 |         setIsPlaying(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 65 |     };
+     | ^^^^^^^ `handleGenerateArray` is declared here
+  66 |
+  67 |     const runLinearSearch = () => {
+  68 |         const target = parseInt(targetValue); [react-hooks/immutability]
+  Warning (29:8): React Hook useEffect has a missing dependency: 'handleGenerateArray'. Either include it or remove the dependency array. [react-hooks/exhaustive-deps]
+  Error (32:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (50:13): 'newArr' is never reassigned. Use 'const' instead. [prefer-const]
+  Error (231:73): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\sorting\SortingVisualizer.tsx
+  Error (26:9): Error: Cannot access variable before it is declared
+
+`handleGenerateArray` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\sorting\SortingVisualizer.tsx:26:9
+  24 |     useEffect(() => {
+  25 |         // Initial random array
+> 26 |         handleGenerateArray();
+     |         ^^^^^^^^^^^^^^^^^^^ `handleGenerateArray` accessed before it is declared
+  27 |     }, []);
+  28 |
+  29 |     useEffect(() => {
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\sorting\SortingVisualizer.tsx:47:5
+  45 |     };
+  46 |
+> 47 |     const handleGenerateArray = () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |         const newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 80) + 10);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |         setHistory([{
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |         setIsPlaying(false);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 58 |     };
+     | ^^^^^^^ `handleGenerateArray` is declared here
+  59 |
+  60 |     const runBubbleSort = () => {
+  61 |         const arr = [...currentState.array]; [react-hooks/immutability]
+  Error (30:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (217:73): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\stack\StackVisualizer.tsx
+  Error (24:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (30:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\stack\StackVisualizer.tsx:30:13
+  28 |             }, 1000); // Default speed, can be connected to props later
+  29 |         } else if (currentStep >= history.length - 1) {
+> 30 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  31 |         }
+  32 |         return () => clearInterval(interval);
+  33 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\tree\BinaryTreeVisualizer.tsx
+  Error (36:176): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (76:23): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (82:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\dataStructures\tree\BinaryTreeVisualizer.tsx:82:13
+  80 |             }, 1000);
+  81 |         } else if (currentStep >= history.length - 1) {
+> 82 |             setIsPlaying(false);
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  83 |         }
+  84 |         return () => clearInterval(interval);
+  85 |     }, [isPlaying, currentStep, history.length]); [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\editor\MonacoEditor.tsx
+  Error (20:9): Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free. [@typescript-eslint/ban-ts-comment]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\features\Visualizer.tsx
+  Error (13:13): Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\components\features\Visualizer.tsx:13:13
+  11 |     useEffect(() => {
+  12 |         if (!code) {
+> 13 |             setIframeSrc('');
+     |             ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  14 |             return;
+  15 |         }
+  16 | [react-hooks/set-state-in-effect]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\services\VisualizationController.tsx
+  Error (12:36): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (31:43): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (45:50): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (79:71): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]
+  Error (138:14): Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components. [react-refresh/only-export-components]
+
+File: D:\FINAL-YEAR-PROJECT\CODEVIZ-2.0\frontend\src\types\index.ts
+  Error (22:26): Unexpected any. Specify a different type. [@typescript-eslint/no-explicit-any]

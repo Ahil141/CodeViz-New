@@ -8,9 +8,14 @@ interface VisualizerProps {
 const Visualizer: React.FC<VisualizerProps> = ({ code, title }) => {
     const [iframeSrc, setIframeSrc] = useState<string>('');
 
+    // This effect handles the generation of the iframe source whenever the 'code' prop changes.
     useEffect(() => {
         if (!code) {
-            setIframeSrc('');
+            // Clear the iframe source if there's no code, and revoke any existing URL.
+            if (iframeSrc) {
+                URL.revokeObjectURL(iframeSrc);
+            }
+            // setIframeSrc(''); // Remove synchronous setIframeSrc within effect to avoid cascading renders
             return;
         }
 
@@ -73,10 +78,12 @@ const Visualizer: React.FC<VisualizerProps> = ({ code, title }) => {
         const finalHtml = constructHtml(code);
         const blob = new Blob([finalHtml], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
+
         setIframeSrc(url);
 
         return () => {
             URL.revokeObjectURL(url);
+            // setIframeSrc(''); // Avoid synchronous reset in cleanup if not necessary to prevent render loops
         };
     }, [code]);
 
@@ -91,8 +98,16 @@ const Visualizer: React.FC<VisualizerProps> = ({ code, title }) => {
     return (
         <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
             {title && (
-                <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 font-medium text-gray-700 flex justify-between items-center">
-                    <span>{title}</span>
+                <div className="bg-[#030712]/50 backdrop-blur-md px-4 py-2 border-b border-white/10 flex justify-between items-center">
+                    <span
+                        className="text-xs font-normal text-white select-none"
+                        style={{
+                            fontFamily: "var(--font-futuristic)",
+                            filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))"
+                        }}
+                    >
+                        {title.toUpperCase()}
+                    </span>
                 </div>
             )}
             <div className="flex-1 relative bg-white">

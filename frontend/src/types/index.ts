@@ -19,5 +19,5 @@ export interface ChatResponse {
     text_response: string;
     visualization_type: VisualizationType;
     code_blocks: CodeBlock[];
-    visualization_data?: any;
+    visualization_data?: unknown;
 }

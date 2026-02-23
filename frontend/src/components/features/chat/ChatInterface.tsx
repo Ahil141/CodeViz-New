@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { Send, Loader2 } from 'lucide-react';
 import type { Message } from '../../../types';
 import { api } from '../../../services/api';
@@ -50,30 +51,74 @@ export const ChatInterface = () => {
         setInput('');
         setIsLoading(true);
 
+        // Create placeholder AI message for streaming
+        const aiMessageId = (Date.now() + 1).toString();
+        const aiMessage: Message = {
+            id: aiMessageId,
+            role: 'assistant',
+            content: '',
+            timestamp: Date.now(),
+        };
+
+        setMessages(prev => [...prev, aiMessage]);
+
         try {
-            const response = await api.sendMessage(userMessage.content);
-            console.log("DEBUG: Raw API Response received:", response);
+            let fullText = '';
+            let visualizationData: any = null;
 
-            const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: response.text_response,
-                timestamp: Date.now(),
-            };
+            // Stream the response
+            for await (const chunk of api.sendMessageStream(userMessage.content)) {
+                if (chunk.type === 'text') {
+                    // Append text chunk progressively
+                    fullText += chunk.content || '';
 
-            setMessages(prev => [...prev, aiMessage]);
+                    // Force immediate render (bypass React 18 batching)
+                    flushSync(() => {
+                        setMessages(prev =>
+                            prev.map(msg =>
+                                msg.id === aiMessageId
+                                    ? { ...msg, content: fullText }
+                                    : msg
+                            )
+                        );
+                    });
+                } else if (chunk.type === 'complete') {
+                    // Store visualization data for processing
+                    visualizationData = chunk;
+                } else if (chunk.type === 'error') {
+                    console.error('Stream error:', chunk.message);
+                    setMessages(prev =>
+                        prev.map(msg =>
+                            msg.id === aiMessageId
+                                ? { ...msg, content: 'Sorry, something went wrong. Please try again.' }
+                                : msg
+                        )
+                    );
+                }
+            }
 
-            // Send full response to controller for visualization/code updates
-            processBackendResponse(response);
+            // Process visualization data if available
+            if (visualizationData) {
+                const backendResponse = {
+                    text_response: fullText,
+                    visualization_type: visualizationData.visualization_type,
+                    code_blocks: visualizationData.code_blocks || [],
+                    visualization_data: visualizationData.visualization_data,
+                    implementation_code: visualizationData.implementation_code,
+                };
+                processBackendResponse(backendResponse);
+            }
 
         } catch (error) {
-            const errorMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: 'Sorry, something went wrong. Please check if the backend is running.',
-                timestamp: Date.now(),
-            };
-            setMessages(prev => [...prev, errorMessage]);
+            console.error(error);
+
+            setMessages(prev =>
+                prev.map(msg =>
+                    msg.id === aiMessageId
+                        ? { ...msg, content: 'Sorry, something went wrong. Please check if the backend is running.' }
+                        : msg
+                )
+            );
         } finally {
             setIsLoading(false);
         }
@@ -87,17 +132,17 @@ export const ChatInterface = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50">
+        <div className="flex flex-col h-full bg-[#020617]">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
                 {messages.map((msg) => (
                     <ChatMessage key={msg.id} message={msg} />
                 ))}
                 {isLoading && (
                     <div className="flex justify-start px-2">
-                        <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-3 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                            <span className="text-sm text-gray-500">Thinking...</span>
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl rounded-2xl p-3 flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                            <span className="text-sm text-slate-400">Thinking...</span>
                         </div>
                     </div>
                 )}
@@ -105,23 +150,23 @@ export const ChatInterface = () => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-200">
-                <div className="relative flex items-end">
+            <div className="p-4 bg-[#020617] border-t border-white/5">
+                <div className="relative flex items-end max-w-4xl mx-auto w-full">
                     <textarea
                         ref={textareaRef}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Ask about code..."
-                        className="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all shadow-sm resize-none min-h-[50px] max-h-[200px]"
+                        className="w-full pl-4 pr-12 py-3 rounded-2xl border border-white/10 bg-white/5 text-slate-200 placeholder-slate-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all shadow-2xl resize-none min-h-[50px] max-h-[200px]"
+                        style={{ height: 'auto', minHeight: '50px', fontFamily: "var(--font-primary)" }}
                         disabled={isLoading}
                         rows={1}
-                        style={{ height: 'auto', minHeight: '50px' }}
                     />
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
-                        className="absolute right-2 bottom-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="absolute right-2 bottom-2 p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]"
                     >
                         <Send className="w-4 h-4" />
                     </button>

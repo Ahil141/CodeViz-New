@@ -8,40 +8,47 @@ export const CodeViz = () => {
     const [showEditor, setShowEditor] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
+        <div className="min-h-screen bg-[#020617] flex flex-col text-slate-100">
             {/* Header */}
-            <header className="bg-white shadow-sm px-6 py-3 flex items-center justify-between z-10">
-                <div className="flex items-center gap-6">
-                    <div className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between z-10 shadow-2xl relative">
+                <div className="flex items-center gap-8">
+                    <div
+                        className="text-xl font-normal tracking-tight select-none cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{
+                            fontFamily: "var(--font-futuristic)",
+                            color: "#ffffff",
+                            filter: "drop-shadow(0 0 5px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 15px rgba(59, 130, 246, 0.3))"
+                        }}
+                    >
                         CodeViz
                     </div>
                     <button
                         onClick={() => setShowEditor(!showEditor)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${showEditor
-                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all duration-300 border ${showEditor
+                            ? 'bg-blue-600/20 border-blue-500/50 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]'
+                            : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20'
                             }`}
                     >
-                        <Code2 className="w-4 h-4" />
+                        <Code2 className="w-3.5 h-3.5" />
                         {showEditor ? 'Hide Editor' : 'Show Editor'}
                     </button>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-slate-400 font-medium">
                     Draft Workspace
                 </div>
             </header>
 
             {/* Main Content Grid */}
-            <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-56px)]">
+            <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-56px)] bg-[#020617]">
 
                 {/* Left Panel: Chat */}
-                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-3' : 'lg:col-span-7'
+                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-3' : 'lg:col-span-7'
                     }`}>
                     <ChatPanel />
                 </section>
 
                 {/* Center Panel: Editor */}
-                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-gray-200 overflow-hidden relative h-1/3 lg:h-full ${showEditor ? 'lg:col-span-5' : 'hidden'
+                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden relative h-1/3 lg:h-full ${showEditor ? 'lg:col-span-5' : 'hidden'
                     }`}>
                     <CodeEditor />
                 </section>

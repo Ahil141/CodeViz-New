@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BaseVisualizer } from '../BaseVisualizer';
 import { RotateCcw, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,30 +24,8 @@ export const SearchingVisualizer = () => {
 
     const currentState = history[currentStep];
 
-    useEffect(() => {
-        handleGenerateArray();
-    }, [algorithm]);
-
-    useEffect(() => {
-        let interval: any;
-        if (isPlaying && currentStep < history.length - 1) {
-            interval = setInterval(() => {
-                setCurrentStep(prev => prev + 1);
-            }, 800);
-        } else if (currentStep >= history.length - 1) {
-            setIsPlaying(false);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, currentStep, history.length]);
-
-    const addToHistory = (steps: SearchState[]) => {
-        setHistory(steps);
-        setCurrentStep(0);
-        setIsPlaying(true);
-    };
-
-    const handleGenerateArray = () => {
-        let newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 99) + 1);
+    const handleGenerateArray = useCallback(() => {
+        const newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 99) + 1);
         if (algorithm === 'binary') {
             newArr.sort((a, b) => a - b);
         }
@@ -62,7 +40,39 @@ export const SearchingVisualizer = () => {
         }]);
         setCurrentStep(0);
         setIsPlaying(false);
+    }, [algorithm]);
+
+    const addToHistory = (steps: SearchState[]) => {
+        setHistory(steps);
+        setCurrentStep(0);
+        setIsPlaying(true);
     };
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        handleGenerateArray();
+    }, [handleGenerateArray]);
+
+    // Playback Logic
+    useEffect(() => {
+        if (!isPlaying) return;
+
+        const interval = setInterval(() => {
+            setCurrentStep(prev => {
+                if (prev >= history.length - 1) {
+                    setIsPlaying(false);
+                    return prev;
+                }
+                const next = prev + 1;
+                if (next >= history.length - 1) {
+                    setIsPlaying(false);
+                }
+                return next;
+            });
+        }, 800);
+
+        return () => clearInterval(interval);
+    }, [isPlaying, history.length]);
 
     const runLinearSearch = () => {
         const target = parseInt(targetValue);
@@ -228,7 +238,26 @@ export const SearchingVisualizer = () => {
 
                     <select
                         value={algorithm}
-                        onChange={(e) => setAlgorithm(e.target.value as any)}
+                        onChange={(e) => {
+                            const newAlgo = e.target.value as 'linear' | 'binary';
+                            setAlgorithm(newAlgo);
+                            // Generate new array immediately
+                            const newArr = Array.from({ length: 15 }, () => Math.floor(Math.random() * 99) + 1);
+                            if (newAlgo === 'binary') {
+                                newArr.sort((a, b) => a - b);
+                            }
+                            setHistory([{
+                                array: newArr,
+                                activeIndices: [],
+                                foundIndex: null,
+                                low: null,
+                                high: null,
+                                mid: null,
+                                message: `Generated ${newAlgo === 'binary' ? 'sorted' : 'random'} array.`
+                            }]);
+                            setCurrentStep(0);
+                            setIsPlaying(false);
+                        }}
                         className="px-2 py-1 border rounded text-sm"
                     >
                         <option value="linear">Linear Search</option>
