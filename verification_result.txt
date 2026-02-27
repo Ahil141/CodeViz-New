@@ -1,3 +1,0 @@
-Starting import test...
-Import successful!
-Collection: None

@@ -1,0 +1,25 @@
+# ─── OS / Editor ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ─── Logs (root-level) ───────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Misc output files generated during development ─────────────────────────
+out2.txt
+output.txt
+models.txt
+verification_result.txt
+train_data_final.jsonl

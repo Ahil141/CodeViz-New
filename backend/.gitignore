@@ -1,0 +1,58 @@
+# ─── Python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# ─── Virtual environments ────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env.local
+
+# ─── Secrets / environment ───────────────────────────────────────────────────
+.env
+# keep the example so others can copy it
+!.env.example
+
+# ─── Distribution / packaging ────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ─── Testing & coverage ──────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── ChromaDB (persisted vector-store — large binary) ───────────────────────
+chroma_db/
+
+# ─── Temporary / debug output files ─────────────────────────────────────────
+models_raw.txt
+models_list.txt
+models.txt
+out2.txt
+output.txt
+verification_result.txt
+
+# ─── Type-checking / linting caches ─────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# ─── Jupyter ─────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── macOS ───────────────────────────────────────────────────────────────────
+.DS_Store

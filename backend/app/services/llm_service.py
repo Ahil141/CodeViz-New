@@ -1,148 +1,78 @@
-import re
 import traceback
-import asyncio
-from google import genai
+import requests
 from app.core.config import settings
 
 
-class GeminiService:
+class DualAgentService:
     """
-    Service class for interacting with the Gemini LLM
-    using the official `google.genai` SDK.
+    Service class for the Dual-Agent architecture.
+    Sends prompts to a remote Ngrok tunnel and expects back
+    a JSON response with 'ai_html' and 'explanation' keys.
     """
 
     def __init__(self):
+        self.base_url = settings.NGROK_KAGGLE_URL.rstrip('/')
+        self.generate_endpoint = f"{self.base_url}/generate"
+
+    def generate_response(self, prompt: str) -> dict:
         """
-        Initialize the Gemini client using the API key from settings.
+        Send a prompt to the remote Dual-Agent Ngrok tunnel.
+
+        Expected response JSON from the remote server:
+            { "ai_html": "<full HTML string or null>",
+              "explanation": "<text explanation>" }
+
+        Returns a dict with the same two keys; on any failure the
+        dict still has both keys (ai_html=None, explanation=<error msg>).
         """
-        if not settings.GEMINI_API_KEY:
-            print("Warning: GEMINI_API_KEY is not set.")
-            self.client = None
-        else:
-            self.client = genai.Client(
-                api_key=settings.GEMINI_API_KEY
+        try:
+            print(f"DEBUG: Calling Dual-Agent endpoint: {self.generate_endpoint}")
+            resp = requests.post(
+                self.generate_endpoint,
+                json={"prompt": prompt},
+                timeout=120,
+                headers={"Content-Type": "application/json"},
             )
+            resp.raise_for_status()
+            data = resp.json()
 
-        # ✅ List of models for failover (ordered by priority)
-        # Using Gemini 2.x models (available for this API key)
-        self.models = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.5-pro",
-            "gemini-flash-latest",
-            "gemini-pro-latest",
-            "gemini-2.0-flash-lite"
-        ]
+            return {
+                "ai_html":     data.get("ai_html", None),
+                "explanation": data.get("explanation", "The AI returned an empty explanation."),
+            }
 
-    async def generate_response(self, prompt: str, context: str = "") -> str:
-        """
-        Generate a response from the Gemini model with automatic failover.
-        """
-        if not self.client:
-            return (
-                "Error: Gemini API Key is missing. "
-                "Please configure it in the .env file."
-            )
-
-        # Combine RAG context (if available) with user prompt
-        final_prompt = (
-            f"You are an educational computer science tutor.\n\n"
-            f"Context:\n{context}\n\n"
-            f"User Question:\n{prompt}"
-        ) if context else prompt
-
-        # Try each model in sequence if rate-limited
-        for model_name in self.models:
-            try:
-                print(f"DEBUG: Using model: {model_name}")
-                response = self.client.models.generate_content(
-                    model=model_name,
-                    contents=final_prompt
-                )
-
-                if response and response.text:
-                    return response.text
-                
-                print(f"WARNING: Empty response from {model_name}. Trying next...")
-                continue
-
-            except Exception as e:
-                error_str = str(e).upper()
-                
-                # Check for rate limit / quota error OR model not found
-                if any(err in error_str for err in ["RESOURCE_EXHAUSTED", "429", "404", "NOT_FOUND", "400", "INVALID_ARGUMENT"]):
-                    print(f"WARNING: Issue with {model_name} (Error: {error_str}). Switching model...")
-                    continue # Try next model
-                
-                traceback.print_exc()
-                return f"Error: Failed to generate response. Details: {str(e)}"
-
-        return "Error: All available AI models have failed. Please try again later."
-
-    async def generate_response_stream(self, prompt: str, context: str = ""):
-        """
-        Generate a streaming response from the Gemini model with automatic failover.
-        Yields text chunks as they are generated.
-        """
-        if not self.client:
-            yield "Error: Gemini API Key is missing. Please configure it in the .env file."
-            return
-
-        # Combine RAG context (if available) with user prompt
-        final_prompt = (
-            f"You are an educational computer science tutor.\n\n"
-            f"Context:\n{context}\n\n"
-            f"User Question:\n{prompt}"
-        ) if context else prompt
-
-        # Try each model in sequence if rate-limited
-        for model_name in self.models:
-            try:
-                print(f"DEBUG: Using model (streaming): {model_name}")
-                
-                # Use generate_content_stream for streaming responses
-                stream = self.client.models.generate_content_stream(
-                    model=model_name,
-                    contents=final_prompt
-                )
-
-                # Yield chunks as they arrive, split into words/tokens for smoother streaming
-                has_content = False
-                for chunk in stream:
-                    if chunk.text:
-                        has_content = True
-                        # Split by whitespace but keep the delimiters (spaces, newlines, etc.)
-                        # This preserves the exact formatting of the original text
-                        tokens = re.split(r'(\s+)', chunk.text)
-                        
-                        for token in tokens:
-                            if token: # Skip empty strings
-                                yield token
-                                # Small delay for visible streaming effect (adjust as needed)
-                                # Only delay on actual words, not just whitespace, to make it feel more natural
-                                if token.strip():
-                                    await asyncio.sleep(0.05)
-                
-                if has_content:
-                    return  # Successfully streamed, exit
-                
-                print(f"WARNING: Empty stream from {model_name}. Trying next...")
-                continue
-
-            except Exception as e:
-                error_str = str(e).upper()
-                
-                # Check for rate limit / quota error OR model not found
-                if any(err in error_str for err in ["RESOURCE_EXHAUSTED", "429", "404", "NOT_FOUND", "400", "INVALID_ARGUMENT"]):
-                    print(f"WARNING: Issue with {model_name} (streaming) (Error: {error_str}). Switching model...")
-                    continue  # Try next model
-                
-                traceback.print_exc()
-                yield f"Error: Failed to generate response. Details: {str(e)}"
-                return
-
-        yield "Error: All available AI models have failed. Please try again later."
+        except requests.exceptions.ConnectionError:
+            print("ERROR: Could not connect to the Ngrok tunnel.")
+            return {
+                "ai_html":     None,
+                "explanation": (
+                    "⚠️ Could not connect to the AI backend. "
+                    "The Ngrok tunnel may be offline. "
+                    "A hardcoded fallback visualizer will be shown if one is available."
+                ),
+            }
+        except requests.exceptions.Timeout:
+            print("ERROR: Ngrok tunnel timed out.")
+            return {
+                "ai_html":     None,
+                "explanation": (
+                    "⚠️ The AI backend timed out. "
+                    "A hardcoded fallback visualizer will be shown if one is available."
+                ),
+            }
+        except requests.exceptions.HTTPError as e:
+            print(f"ERROR: Ngrok tunnel returned HTTP error: {e}")
+            return {
+                "ai_html":     None,
+                "explanation": f"⚠️ The AI backend returned an error ({e}). Please try again.",
+            }
+        except Exception as e:
+            traceback.print_exc()
+            return {
+                "ai_html":     None,
+                "explanation": f"⚠️ An unexpected error occurred: {str(e)}",
+            }
 
 
 # Singleton instance for easy import across the backend
-llm_service = GeminiService()
+llm_service = DualAgentService()

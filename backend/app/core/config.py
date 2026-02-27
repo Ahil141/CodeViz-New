@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     # In production, this should be a comma-separated list of allowed origins
     CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
-    GEMINI_API_KEY: str
+    NGROK_KAGGLE_URL: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).parent.parent.parent / ".env",

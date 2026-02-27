@@ -1,22 +1,121 @@
-import { Eye, List, Search, Terminal, Code } from 'lucide-react';
-import { useState } from 'react';
+﻿import { Eye, List, Search } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useVisualization } from '../../services/VisualizationController';
-import Visualizer from './Visualizer'; // The new component
-// Keep existing imports for native fallback if needed
-import { StackVisualizer } from '../dataStructures/stack/StackVisualizer';
 
+// ---------------------------------------------------------------------------
+// Injects a "tripwire" script into the <head> of the AI-generated HTML so
+// that any uncaught runtime error inside the iframe fires a postMessage back
+// to the parent, which then swaps the iframe to the safe fallback HTML.
+// ---------------------------------------------------------------------------
+function injectTripwire(html: string): string {
+    const tripwire = `<script>window.onerror = function(msg, src, line, col, err) {
+  window.parent.postMessage('AI_CRASHED', '*');
+  return true;
+};<\/script>`;
+
+    // Try to insert after <head> tag (best practice)
+    if (/<head[^>]*>/i.test(html)) {
+        return html.replace(/(<head[^>]*>)/i, `$1${tripwire}`);
+    }
+    // No <head>: prepend the tripwire
+    return tripwire + html;
+}
+
+// ---------------------------------------------------------------------------
+// Sandboxed iframe renderer with automatic fallback
+// ---------------------------------------------------------------------------
+const SandboxedVisualizer = ({
+    aiHtml,
+    fallbackHtml,
+}: {
+    aiHtml: string | null;
+    fallbackHtml: string | null;
+}) => {
+    // Start with the AI html (with tripwire injected); fall back if it crashes
+    const [activeSrc, setActiveSrc] = useState<string>(() => {
+        if (aiHtml) return injectTripwire(aiHtml);
+        return fallbackHtml ?? '';
+    });
+    const [usingFallback, setUsingFallback] = useState(!aiHtml && !!fallbackHtml);
+    const fallbackRef = useRef(fallbackHtml);
+    fallbackRef.current = fallbackHtml;
+
+    // When props change (new AI response), reset to the newest AI html
+    useEffect(() => {
+        if (aiHtml) {
+            setActiveSrc(injectTripwire(aiHtml));
+            setUsingFallback(false);
+        } else if (fallbackHtml) {
+            setActiveSrc(fallbackHtml);
+            setUsingFallback(true);
+        }
+    }, [aiHtml, fallbackHtml]);
+
+    // Listen for the tripwire signal
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data === 'AI_CRASHED') {
+                console.warn('AI visualizer crashed — switching to fallback.');
+                if (fallbackRef.current) {
+                    setActiveSrc(fallbackRef.current);
+                    setUsingFallback(true);
+                }
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
+    if (!activeSrc) {
+        return (
+            <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+                No visualization available.
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative w-full h-full">
+            {usingFallback && (
+                <span className="absolute top-2 right-2 z-10 text-xs bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 rounded-full">
+                    fallback
+                </span>
+            )}
+            <iframe
+                key={activeSrc.slice(0, 40)}   /* force remount on src change */
+                srcDoc={activeSrc}
+                className="w-full h-full border-0"
+                sandbox="allow-scripts allow-modals allow-forms"
+                title="Data Structure Visualization"
+            />
+        </div>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// Main panel
+// ---------------------------------------------------------------------------
 export const VisualizerPanel = () => {
-    const { visualizationType, code, setCode, setVisualizationType, output, implementationCode } = useVisualization();
+    const {
+        visualizationType,
+        setVisualizationType,
+        aiHtml,
+        setAiHtml,
+        fallbackHtml,
+        setFallbackHtml,
+        output,
+    } = useVisualization();
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showImplementation, setShowImplementation] = useState(false);
 
-    // List of available DS for manual selection
     const availableVisualizers = [
-        "Stack", "Bubble Sort", "Queue", "Linked List", "Binary Tree"
+        'Stack', 'Queue', 'Linked List', 'Heap', 'Binary Tree',
+        'Bubble Sort', 'Graph',
     ];
 
+    // Manual selection from the dropdown — fetches from the RAG endpoint
     const handleSelectVisualizer = async (name: string) => {
         setLoading(true);
         setIsMenuOpen(false);
@@ -24,20 +123,18 @@ export const VisualizerPanel = () => {
             const response = await fetch('http://localhost:8000/api/v1/rag/query', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ data_structure_name: name })
+                body: JSON.stringify({ data_structure_name: name }),
             });
             const data = await response.json();
-
             if (data.success && data.visualizer_code) {
-                setCode(data.visualizer_code);
-                setVisualizationType('html'); // Force HTML renderer
+                setAiHtml(data.visualizer_code);
+                setFallbackHtml(null);
+                setVisualizationType('data_structure');
             } else {
-                console.error("Failed to fetch visualizer:", data.error);
-                // Fallback to purely setting type if native component exists
-                setVisualizationType(name.toLowerCase().replace(" ", "_"));
+                console.error('Failed to fetch visualizer:', data.error);
             }
         } catch (error) {
-            console.error("Error fetching visualizer:", error);
+            console.error('Error fetching visualizer:', error);
         } finally {
             setLoading(false);
         }
@@ -47,67 +144,32 @@ export const VisualizerPanel = () => {
         if (loading) {
             return (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4" />
                     <p>Loading Visualizer...</p>
                 </div>
             );
         }
 
-        // 0. Show Implementation Code (New Feature)
-        if (showImplementation && implementationCode) {
-            return (
-                <div className="flex flex-col h-full bg-[#1e1e1e] text-white">
-                    <div className="flex items-center justify-between p-2 bg-[#2d2d2d] border-b border-[#3e3e3e]">
-                        <span className="text-sm text-gray-300 font-mono">implementation.py</span>
-                        <button
-                            onClick={() => navigator.clipboard.writeText(implementationCode)}
-                            className="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-gray-200 transition-colors"
-                        >
-                            Copy Code
-                        </button>
-                    </div>
-                    <pre className="flex-1 p-4 overflow-auto font-mono text-sm leading-relaxed">
-                        {implementationCode}
-                    </pre>
-                </div>
-            );
-        }
-
-        // 1. Execution Output
+        // Terminal output view
         if (visualizationType === 'output') {
             return (
                 <div className="flex flex-col h-full bg-[#1e1e1e] text-white font-mono text-sm">
                     <div className="flex items-center gap-2 p-2 bg-[#2d2d2d] border-b border-[#3e3e3e] text-gray-300">
-                        <Terminal className="w-4 h-4" />
                         <span className="font-semibold">Terminal Output</span>
                     </div>
                     <pre className="flex-1 p-4 overflow-auto whitespace-pre-wrap">
-                        {output || "No output."}
+                        {output ?? 'No output.'}
                     </pre>
                 </div>
             );
         }
 
-        // 2. RAG/Code based visualization (Priority)
-        if (visualizationType === 'html' && code) {
-            return <Visualizer code={code} title={visualizationType || 'Visualization'} />;
+        // AI / fallback iframe renderer
+        if (aiHtml || fallbackHtml) {
+            return <SandboxedVisualizer aiHtml={aiHtml} fallbackHtml={fallbackHtml} />;
         }
 
-        // 3. Generic Code Fallback
-        if (code && code.length > 50 && (!visualizationType || visualizationType === 'data_structure')) {
-            return <Visualizer code={code} title={visualizationType || 'Visualization'} />;
-        }
-
-        // 4. Native Component Fallback
-        switch (visualizationType?.toLowerCase()) {
-            case 'stack': return <StackVisualizer />;
-            case 'queue': return <StackVisualizer />; // Placeholder if queue not implemented or native
-            // We can add back other native components if imports are restored
-            default:
-                break;
-        }
-
-        // If no code and no native component, show instructions
+        // Empty state
         return (
             <div className="flex flex-col items-center justify-center h-full text-slate-500 p-8 text-center bg-[#020617]">
                 <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-6 shadow-2xl border border-white/5">
@@ -116,14 +178,15 @@ export const VisualizerPanel = () => {
                 <h3
                     className="text-xl font-normal text-white mb-3 tracking-tight select-none"
                     style={{
-                        fontFamily: "var(--font-futuristic)",
-                        filter: "drop-shadow(0 0 8px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 20px rgba(255, 255, 255, 0.2))"
+                        fontFamily: 'var(--font-futuristic)',
+                        filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.2))',
                     }}
                 >
                     No Visualization Active
                 </h3>
                 <p className="text-sm text-slate-400 max-w-[240px] leading-relaxed">
-                    Select a data structure from the menu or ask the chat to <span className="text-blue-400">"Show me a Stack"</span>.
+                    Select a data structure from the menu or ask the chat to{' '}
+                    <span className="text-blue-400">"Show me a Stack"</span>.
                 </p>
             </div>
         );
@@ -144,39 +207,24 @@ export const VisualizerPanel = () => {
                     <h2
                         className="text-sm font-normal text-white select-none whitespace-nowrap"
                         style={{
-                            fontFamily: "var(--font-futuristic)",
-                            filter: "drop-shadow(0 0 5px rgba(255, 255, 255, 0.5))"
+                            fontFamily: 'var(--font-futuristic)',
+                            filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))',
                         }}
                     >
-                        {visualizationType ? visualizationType.replace(/_/g, ' ').toUpperCase() : 'VISUALIZATION'}
+                        {visualizationType
+                            ? visualizationType.replace(/_/g, ' ').toUpperCase()
+                            : 'VISUALIZATION'}
                     </h2>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Show Code Button */}
-                    {implementationCode && (
-                        <button
-                            onClick={() => setShowImplementation(!showImplementation)}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${showImplementation
-                                ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                                : 'bg-white/5 text-slate-400 hover:bg-white/10'
-                                }`}
-                            title={showImplementation ? "Show Visualization" : "Show Implementation Code"}
-                        >
-                            <Code className="w-4 h-4" />
-                            {showImplementation ? 'Hide Code' : 'Show Code'}
-                        </button>
-                    )}
-
-                    {visualizationType && (
-                        <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
-                            Interactive
-                        </span>
-                    )}
-                </div>
+                {(aiHtml || fallbackHtml) && (
+                    <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
+                        Interactive
+                    </span>
+                )}
             </div>
 
-            {/* Dropdown Menu for Selection */}
+            {/* Dropdown Menu */}
             {isMenuOpen && (
                 <div className="absolute top-14 left-4 bg-[#0f172a] shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl border border-white/10 w-64 z-50 backdrop-blur-xl overflow-hidden">
                     <div className="p-3 border-b border-white/5 flex items-center gap-2 bg-white/5">
@@ -200,8 +248,7 @@ export const VisualizerPanel = () => {
                                 >
                                     {v}
                                 </button>
-                            ))
-                        }
+                            ))}
                     </div>
                 </div>
             )}
@@ -213,5 +260,3 @@ export const VisualizerPanel = () => {
         </div>
     );
 };
-
-

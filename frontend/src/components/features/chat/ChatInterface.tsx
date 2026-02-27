@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
-import { flushSync } from 'react-dom';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import type { Message } from '../../../types';
 import { api } from '../../../services/api';
@@ -11,7 +10,7 @@ export const ChatInterface = () => {
         {
             id: 'welcome',
             role: 'assistant',
-            content: 'Code, learn, build — I’m here to help.',
+            content: "Code, learn, build — I'm here to help.",
             timestamp: Date.now(),
         }
     ]);
@@ -28,7 +27,6 @@ export const ChatInterface = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Auto-resize textarea
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
         if (textareaRef.current) {
@@ -48,77 +46,40 @@ export const ChatInterface = () => {
         };
 
         setMessages(prev => [...prev, userMessage]);
+        const promptText = input;
         setInput('');
         setIsLoading(true);
 
-        // Create placeholder AI message for streaming
-        const aiMessageId = (Date.now() + 1).toString();
-        const aiMessage: Message = {
-            id: aiMessageId,
-            role: 'assistant',
-            content: '',
-            timestamp: Date.now(),
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-
         try {
-            let fullText = '';
-            let visualizationData: any = null;
+            // Call the Dual-Agent endpoint (non-streaming)
+            const response = await api.sendMessage(promptText);
 
-            // Stream the response
-            for await (const chunk of api.sendMessageStream(userMessage.content)) {
-                if (chunk.type === 'text') {
-                    // Append text chunk progressively
-                    fullText += chunk.content || '';
+            // Show the explanation text in the chat bubble
+            const aiMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: response.explanation,
+                timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, aiMessage]);
 
-                    // Force immediate render (bypass React 18 batching)
-                    flushSync(() => {
-                        setMessages(prev =>
-                            prev.map(msg =>
-                                msg.id === aiMessageId
-                                    ? { ...msg, content: fullText }
-                                    : msg
-                            )
-                        );
-                    });
-                } else if (chunk.type === 'complete') {
-                    // Store visualization data for processing
-                    visualizationData = chunk;
-                } else if (chunk.type === 'error') {
-                    console.error('Stream error:', chunk.message);
-                    setMessages(prev =>
-                        prev.map(msg =>
-                            msg.id === aiMessageId
-                                ? { ...msg, content: 'Sorry, something went wrong. Please try again.' }
-                                : msg
-                        )
-                    );
-                }
-            }
-
-            // Process visualization data if available
-            if (visualizationData) {
-                const backendResponse = {
-                    text_response: fullText,
-                    visualization_type: visualizationData.visualization_type,
-                    code_blocks: visualizationData.code_blocks || [],
-                    visualization_data: visualizationData.visualization_data,
-                    implementation_code: visualizationData.implementation_code,
-                };
-                processBackendResponse(backendResponse);
-            }
+            // Pass ai_html + fallback_html to the visualizer context
+            processBackendResponse({
+                ai_html:       response.ai_html,
+                fallback_html: response.fallback_html,
+                explanation:   response.explanation,
+                type:          response.type,
+            });
 
         } catch (error) {
             console.error(error);
-
-            setMessages(prev =>
-                prev.map(msg =>
-                    msg.id === aiMessageId
-                        ? { ...msg, content: 'Sorry, something went wrong. Please check if the backend is running.' }
-                        : msg
-                )
-            );
+            const errMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: 'Sorry, something went wrong. Please check if the backend is running.',
+                timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, errMessage]);
         } finally {
             setIsLoading(false);
         }
@@ -150,25 +111,27 @@ export const ChatInterface = () => {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-[#020617] border-t border-white/5">
-                <div className="relative flex items-end max-w-4xl mx-auto w-full">
+            <div className="p-4 border-t border-white/5">
+                <div className="flex gap-2 items-end bg-white/5 rounded-2xl border border-white/10 p-2 shadow-2xl">
                     <textarea
                         ref={textareaRef}
+                        className="flex-1 bg-transparent outline-none text-sm text-white placeholder-slate-500 resize-none min-h-[24px] max-h-[120px] leading-relaxed px-2 py-1"
+                        style={{ fontFamily: 'var(--font-primary)' }}
+                        placeholder='Ask about a data structure or algorithm...'
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask about code..."
-                        className="w-full pl-4 pr-12 py-3 rounded-2xl border border-white/10 bg-white/5 text-slate-200 placeholder-slate-500 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all shadow-2xl resize-none min-h-[50px] max-h-[200px]"
-                        style={{ height: 'auto', minHeight: '50px', fontFamily: "var(--font-primary)" }}
-                        disabled={isLoading}
                         rows={1}
                     />
                     <button
                         onClick={handleSend}
-                        disabled={!input.trim() || isLoading}
-                        className="absolute right-2 bottom-2 p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                        disabled={isLoading || !input.trim()}
+                        className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]"
                     >
-                        <Send className="w-4 h-4" />
+                        {isLoading
+                            ? <Loader2 className="w-4 h-4 animate-spin text-white" />
+                            : <Send className="w-4 h-4 text-white" />
+                        }
                     </button>
                 </div>
             </div>

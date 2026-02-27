@@ -1,383 +1,144 @@
-from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import StreamingResponse
-import traceback
-import re
-import json
-import asyncio
+﻿"""
+Chat endpoint -- Dual-Agent Architecture
+-----------------------------------------
+POST /api/v1/chat/
+  Body:  { "prompt": "<user message>" }
+  Returns:
+  {
+    "type":          "data_structure",
+    "ai_html":       "<full HTML string | null>",
+    "fallback_html": "<hardcoded HTML string | null>",
+    "explanation":   "<text explanation from AI>"
+  }
+"""
 
-from app.schemas.chat import (
-    ChatRequest,
-    ChatResponse,
-    VisualizationType,
-    CodeBlock,
-)
+import json
+import traceback
+from typing import Optional
+
+from fastapi import APIRouter
+from pydantic import BaseModel
 
 from app.services.llm_service import llm_service
-from app.services.visualization_service import visualization_service
-from app.services.rag_service import rag_service
+from app.core.hardcoded_visualizers import HARDCODED_VISUALIZERS
 
 router = APIRouter()
 
 
-@router.post("/stream")
-async def chat_stream(request: ChatRequest):
+# --- Request / Response schemas -------------------------------------------
+
+class ChatRequest(BaseModel):
+    prompt: str
+
+
+class DualAgentResponse(BaseModel):
+    type: str = "data_structure"
+    ai_html: Optional[str] = None
+    fallback_html: Optional[str] = None
+    explanation: str
+
+
+# --- Helper: extract HTML from an AI payload ------------------------------
+
+def _extract_ai_html(raw: object) -> Optional[str]:
     """
-    Streaming chat endpoint that sends text chunks progressively via Server-Sent Events.
-    After explanation completes, sends visualization data and code blocks.
+    The remote AI may return the HTML in several shapes.
+    We handle the most common ones and always fall back to None.
+
+    Accepted shapes:
+      1. A plain HTML string (starts with '<!DOCTYPE' or '<html')
+      2. A JSON-encoded string like '{"html": "<!DOCTYPE..."}'
+      3. code_blocks style: '{"code_blocks":[{"language":"html","code":"..."}]}'
+      4. A dict with an "html" key (already parsed)
+      5. Anything else -> None
     """
-    
-    async def event_generator():
+    if raw is None:
+        return None
+
+    if isinstance(raw, dict):
+        if "html" in raw:
+            return str(raw["html"]).strip() or None
+        if "code_blocks" in raw:
+            for block in raw["code_blocks"]:
+                if isinstance(block, dict) and block.get("language", "").lower() == "html":
+                    return str(block.get("code", "")).strip() or None
+        return None
+
+    if not isinstance(raw, str):
+        return None
+
+    stripped = raw.strip()
+
+    if stripped.lower().startswith("<!doctype") or stripped.lower().startswith("<html"):
+        return stripped
+
+    if stripped.startswith("{"):
         try:
-            # Step 1: Stream the explanation text
-            full_response = ""
-            async for chunk in llm_service.generate_response_stream(request.prompt):
-                full_response += chunk
-                # Send as SSE event
-                yield f"data: {json.dumps({'type': 'text', 'content': chunk})}\n\n"
-            
-            # Step 2: Detect visualization type
-            vis_type = visualization_service.determine_visualization_type(
-                request.prompt, 
-                full_response
-            )
-            
-            # Step 3: Generate visualization if needed
-            code_blocks = []
-            visualization_data = None
-            implementation_code_block = None
-            
-            NATIVE_VISUALIZATION_TYPES = [
-                VisualizationType.STACK,
-                VisualizationType.QUEUE,
-                VisualizationType.CIRCULAR_QUEUE,
-                VisualizationType.DEQUE,
-                VisualizationType.ARRAY,
-                VisualizationType.LINKED_LIST,
-                VisualizationType.DOUBLY_LINKED_LIST,
-                VisualizationType.CIRCULAR_LINKED_LIST,
-                VisualizationType.BINARY_TREE,
-                VisualizationType.HEAP,
-                VisualizationType.GRAPH,
-                VisualizationType.SORTING,
-                VisualizationType.SEARCHING,
-                VisualizationType.ALGORITHM
-            ]
-            
-            if vis_type != VisualizationType.NONE:
-                # Try LLM visualization generation first
-                fallback_prompt = (
-                    f"Create a self-contained interactive visualization for: "
-                    f"'{request.prompt}'.\n\n"
-                    "Return ONLY THREE Markdown code blocks:\n"
-                    "```html\n...``` \n"
-                    "```css\n...``` \n"
-                    "```javascript\n...``` \n\n"
-                    "Do NOT include explanations or extra text."
-                )
+            parsed = json.loads(stripped)
+            return _extract_ai_html(parsed)
+        except json.JSONDecodeError:
+            pass
 
-                try:
-                    llm_vis_response = await llm_service.generate_response(
-                        fallback_prompt,
-                        context=""
-                    )
-                    
-                    print(f"DEBUG: LLM Visualization Response: {llm_vis_response[:200]}...")
-
-                    # Relaxed regex to handle spaces and optional newlines better
-                    matches = re.findall(
-                        r"```\s*(html|css|javascript|js)\s*\n(.*?)```",
-                        llm_vis_response,
-                        re.DOTALL | re.IGNORECASE
-                    )
-
-                    for lang, code in matches:
-                        lang = lang.lower()
-                        if lang == "js":
-                            lang = "javascript"
-                        code_blocks.append(
-                            CodeBlock(language=lang, code=code.strip())
-                        )
-                    
-                    if code_blocks:
-                        print("DEBUG: Successfully generated LLM visualization code blocks.")
-                        vis_type = VisualizationType.HTML
-                    else:
-                        print("DEBUG: Failed to extract code blocks from LLM response.")
-                        
-                except Exception as e:
-                    print(f"ERROR: LLM visualization generation failed: {e}")
-
-            # Fallback logic (Native -> RAG)
-            if vis_type != VisualizationType.NONE and not code_blocks:
-                if vis_type in NATIVE_VISUALIZATION_TYPES:
-                    pass  # Native visualizer will handle it
-                else:
-                    # RAG fallback
-                    try:
-                        retrieved_docs = rag_service.query(request.prompt)
-                        if retrieved_docs:
-                            for doc in retrieved_docs:
-                                doc = doc.strip()
-                                matches = re.findall(
-                                    r"```(\w+)\n(.*?)```",
-                                    doc,
-                                    re.DOTALL | re.IGNORECASE
-                                )
-
-                                for lang, code in matches:
-                                    lang = lang.lower()
-                                    if lang == "js":
-                                        lang = "javascript"
-
-                                    if lang in ["html", "css", "javascript"]:
-                                        code_blocks.append(
-                                            CodeBlock(language=lang, code=code.strip())
-                                        )
-
-                                if code_blocks:
-                                    vis_type = VisualizationType.HTML
-                                    break
-                    except Exception as e:
-                        print(f"WARNING: RAG service failed: {e}")
-
-            # Step 4: Generate implementation code
-            if vis_type != VisualizationType.NONE:
-                impl_prompt = (
-                    f"Generate a Python implementation for: {request.prompt}\n\n"
-                    "Return ONLY a single Python code block:\n"
-                    "```python\n...\n```\n\n"
-                    "Include comments and be educational."
-                )
-
-                try:
-                    impl_response = await llm_service.generate_response(impl_prompt)
-                    impl_match = re.search(
-                        r"```python\n(.*?)```",
-                        impl_response,
-                        re.DOTALL | re.IGNORECASE
-                    )
-                    if impl_match:
-                        implementation_code_block = CodeBlock(
-                            language="python",
-                            code=impl_match.group(1).strip()
-                        )
-                except Exception as e:
-                    print(f"WARNING: Implementation code generation failed: {e}")
-
-            # Step 5: Send final metadata
-            final_data = {
-                'type': 'complete',
-                'visualization_type': vis_type.value,
-                'code_blocks': [{'language': cb.language, 'code': cb.code} for cb in code_blocks],
-                'visualization_data': visualization_data,
-                'implementation_code': {
-                    'language': implementation_code_block.language,
-                    'code': implementation_code_block.code
-                } if implementation_code_block else None
-            }
-            
-            yield f"data: {json.dumps(final_data)}\n\n"
-            
-        except Exception as e:
-            traceback.print_exc()
-            error_data = {'type': 'error', 'message': str(e)}
-            yield f"data: {json.dumps(error_data)}\n\n"
-    
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-        }
-    )
+    return stripped if stripped else None
 
 
-# Original non-streaming endpoint (preserved for compatibility)
-@router.post("/", response_model=ChatResponse)
+# --- Helper: find the best fallback for a user query ---------------------
+
+def _find_fallback(query: str) -> Optional[str]:
+    """
+    Case-insensitive substring scan.  Longer keys are checked first so
+    "binary tree" beats "tree" etc.
+    """
+    query_lower = query.lower()
+    sorted_keys = sorted(HARDCODED_VISUALIZERS.keys(), key=len, reverse=True)
+    for keyword in sorted_keys:
+        if keyword in query_lower:
+            html = HARDCODED_VISUALIZERS[keyword].get("html")
+            if html:
+                return html
+    return None
+
+
+# --- Main endpoint --------------------------------------------------------
+
+@router.post("/", response_model=DualAgentResponse)
 async def chat(request: ChatRequest):
     """
-    Chat endpoint that:
-    1. Queries RAG (if available)
-    2. Generates LLM explanation
-    3. Detects visualization intent
-    4. Extracts visualization code from RAG OR
-    5. Falls back to LLM-generated HTML/CSS/JS visualization
+    Dual-Agent chat endpoint.
+
+    1. Calls the remote Ngrok/Kaggle agent to get ai_html + explanation.
+    2. Normalises the ai_html payload.
+    3. Searches the query for a matching hardcoded visualizer (fallback_html).
+    4. Returns a strictly typed JSON response.
     """
-
     try:
-        # --------------------------------------------------
-        # 1. Normal LLM response (text explanation)
-        # --------------------------------------------------
-        # PROACTIVE LLM FIRST: Query LLM without RAG context initially
-        print("DEBUG: Generating LLM response (Primary)")
-        raw_response = await llm_service.generate_response(request.prompt)
+        print(f"DEBUG: Incoming prompt: {request.prompt[:120]}")
+        agent_result = llm_service.generate_response(request.prompt)
 
-        # --------------------------------------------------
-        # 2. VISUALIZATION DETECTION
-        # --------------------------------------------------
-        vis_type = visualization_service.determine_visualization_type(
-            request.prompt, raw_response
+        explanation: str = agent_result.get(
+            "explanation",
+            "I could not generate a response at this time."
         )
-        print(f"DEBUG: Visualization Type Detected: {vis_type}")
+        raw_ai_html = agent_result.get("ai_html", None)
 
-        code_blocks = []
-        visualization_data = None
-        implementation_code_block = None
-        retrieved_docs = []
+        ai_html: Optional[str] = _extract_ai_html(raw_ai_html)
+        print(f"DEBUG: ai_html present: {ai_html is not None}")
 
-        # --------------------------------------------------
-        # 3. VISUALIZATION GENERATION (LLM PRIMARY)
-        # --------------------------------------------------
-        NATIVE_VISUALIZATION_TYPES = [
-            VisualizationType.STACK,
-            VisualizationType.QUEUE,
-            VisualizationType.CIRCULAR_QUEUE,
-            VisualizationType.DEQUE,
-            VisualizationType.ARRAY,
-            VisualizationType.LINKED_LIST,
-            VisualizationType.DOUBLY_LINKED_LIST,
-            VisualizationType.CIRCULAR_LINKED_LIST,
-            VisualizationType.BINARY_TREE,
-            VisualizationType.HEAP,
-            VisualizationType.GRAPH,
-            VisualizationType.SORTING,
-            VisualizationType.SEARCHING,
-            VisualizationType.ALGORITHM
-        ]
+        fallback_html: Optional[str] = _find_fallback(request.prompt)
+        print(f"DEBUG: fallback_html present: {fallback_html is not None}")
 
-        if vis_type != VisualizationType.NONE:
-            print(f"DEBUG: Attempting LLM visualization generation for {vis_type}")
-            
-            fallback_prompt = (
-                f"Create a self-contained interactive visualization for: "
-                f"'{request.prompt}'.\n\n"
-                "Return ONLY THREE Markdown code blocks:\n"
-                "```html\n...``` \n"
-                "```css\n...``` \n"
-                "```javascript\n...``` \n\n"
-                "Do NOT include explanations or extra text."
-            )
-
-            try:
-                llm_vis_response = await llm_service.generate_response(
-                    fallback_prompt,
-                    context=""
-                )
-
-                print(f"DEBUG: LLM Visualization Response (Sync): {llm_vis_response[:200]}...")
-
-                matches = re.findall(
-                    r"```\s*(html|css|javascript|js)\s*\n(.*?)```",
-                    llm_vis_response,
-                    re.DOTALL | re.IGNORECASE
-                )
-
-                for lang, code in matches:
-                    lang = lang.lower()
-                    if lang == "js":
-                        lang = "javascript"
-                    code_blocks.append(
-                        CodeBlock(language=lang, code=code.strip())
-                    )
-                
-                if code_blocks:
-                    print("DEBUG: Successfully generated LLM visualization (Sync).")
-                    vis_type = VisualizationType.HTML
-                else:
-                    print("DEBUG: Failed to extract code blocks from LLM response (Sync).")
-
-            except Exception as e:
-                print(f"ERROR: LLM visualization generation failed: {e}")
-
-        # --------------------------------------------------
-        # 4. FALLBACK LOGIC (Native -> RAG)
-        # --------------------------------------------------
-        if vis_type != VisualizationType.NONE and not code_blocks:
-            # First Check: Is it a native type we can handle on the frontend?
-            if vis_type in NATIVE_VISUALIZATION_TYPES:
-                print(f"DEBUG: Using native visualizer for {vis_type}")
-                # We leave code_blocks empty, frontend will use the native component
-            else:
-                # Second Check: Does RAG have a stored visualization?
-                print(f"DEBUG: Falling back to RAG for {vis_type}")
-                try:
-                    retrieved_docs = rag_service.query(request.prompt)
-                except Exception as e:
-                    print(f"WARNING: RAG service failed: {e}")
-
-                if retrieved_docs:
-                    print(f"DEBUG: RAG Docs Retrieved: {len(retrieved_docs)}")
-                    for doc in retrieved_docs:
-                        doc = doc.strip()
-                        # Look for fenced code blocks
-                        matches = re.findall(
-                            r"```(\w+)\n(.*?)```",
-                            doc,
-                            re.DOTALL | re.IGNORECASE
-                        )
-
-                        for lang, code in matches:
-                            lang = lang.lower()
-                            if lang == "js":
-                                lang = "javascript"
-
-                            if lang in ["html", "css", "javascript"]:
-                                code_blocks.append(
-                                    CodeBlock(language=lang, code=code.strip())
-                                )
-
-                        if code_blocks:
-                            vis_type = VisualizationType.HTML
-                            break
-
-                        # Optional: JSON-based visualization
-                        if doc.startswith("{"):
-                            try:
-                                visualization_data = json.loads(doc)
-                                vis_type = VisualizationType.DATA
-                                break
-                            except Exception:
-                                pass
-
-        # --------------------------------------------------
-        # 5. Final polish
-        # --------------------------------------------------
-        if vis_type != VisualizationType.NONE:
-            print("DEBUG: Generating implementation code for", vis_type)
-            impl_prompt = (
-                f"Generate a Python implementation for: {request.prompt}\n\n"
-                "Return ONLY a single Python code block:\n"
-                "```python\n...\n```\n\n"
-                "Include comments and be educational."
-            )
-
-            try:
-                impl_response = await llm_service.generate_response(impl_prompt)
-                impl_match = re.search(
-                    r"```python\n(.*?)```",
-                    impl_response,
-                    re.DOTALL | re.IGNORECASE
-                )
-                if impl_match:
-                    implementation_code_block = CodeBlock(
-                        language="python",
-                        code=impl_match.group(1).strip()
-                    )
-            except Exception as e:
-                print(f"WARNING: Implementation code generation failed: {e}")
-
-        return ChatResponse(
-            text_response=raw_response,
-            visualization_type=vis_type,
-            code_blocks=code_blocks,
-            visualization_data=visualization_data,
-            implementation_code=implementation_code_block,
+        return DualAgentResponse(
+            type="data_structure",
+            ai_html=ai_html,
+            fallback_html=fallback_html,
+            explanation=explanation,
         )
 
     except Exception as e:
         traceback.print_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Chat processing failed: {str(e)}",
+        return DualAgentResponse(
+            type="data_structure",
+            ai_html=None,
+            fallback_html=_find_fallback(request.prompt),
+            explanation=f"Server error: {str(e)}",
         )
