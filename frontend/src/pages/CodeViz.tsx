@@ -8,7 +8,7 @@ export const CodeViz = () => {
     const [showEditor, setShowEditor] = useState(false);
 
     return (
-        <div className="h-screen overflow-hidden bg-[#020617] flex flex-col text-slate-100">
+        <div className="min-h-screen bg-[#020617] flex flex-col text-slate-100">
             <header className="bg-white/5 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex items-center justify-between z-10 shadow-2xl relative">
                 <div className="flex items-center gap-8">
                     <div
@@ -37,8 +37,8 @@ export const CodeViz = () => {
                 </div>
             </header>
 
-            <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-[#020617]">
-                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-3' : 'lg:col-span-7'}`}>
+            <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-56px)] bg-[#020617]">
+                <section className={`col-span-1 border-b lg:border-b-0 lg:border-r border-white/5 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-3' : 'lg:col-span-6'}`}>
                     <ChatPanel />
                 </section>
 
@@ -46,7 +46,7 @@ export const CodeViz = () => {
                     <CodeEditor />
                 </section>
 
-                <section className={`col-span-1 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-4' : 'lg:col-span-5'}`}>
+                <section className={`col-span-1 overflow-hidden h-1/3 lg:h-full ${showEditor ? 'lg:col-span-4' : 'lg:col-span-6'}`}>
                     <VisualizerPanel />
                 </section>
             </main>

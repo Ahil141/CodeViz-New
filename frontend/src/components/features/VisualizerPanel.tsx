@@ -115,7 +115,7 @@ export const VisualizerPanel = () => {
 
     return (
         <div className="flex flex-col h-full bg-[#020617] border-l border-white/5 relative">
-            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-[#030712]/50 backdrop-blur-md z-10 shadow-2xl">
+            <div className="px-3 py-[18px] border-b border-white/5 flex items-center justify-between bg-[#030712]/50 backdrop-blur-md z-10 shadow-2xl">
                 <h2
                     className="text-sm font-normal text-white select-none whitespace-nowrap"
                     style={{
