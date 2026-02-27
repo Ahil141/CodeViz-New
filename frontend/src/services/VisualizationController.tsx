@@ -17,20 +17,13 @@ interface VisualizationContextType {
     setVisualizationType: (type: string | null) => void;
     code: string;
     setCode: (code: string) => void;
-    /** AI-generated HTML from the Dual-Agent (may be null). */
     aiHtml: string | null;
     setAiHtml: (html: string | null) => void;
-    /** Reliable hardcoded fallback HTML (may be null if no keyword matched). */
     fallbackHtml: string | null;
     setFallbackHtml: (html: string | null) => void;
     processBackendResponse: (data: DualAgentPayload) => void;
     error: string | null;
     setError: (error: string | null) => void;
-    output: string | null;
-    setOutput: (output: string | null) => void;
-    implementationCode: string | null;
-    setImplementationCode: (code: string | null) => void;
-    /** Python code returned by the Dual-Agent. */
     pythonCode: string | null;
     setPythonCode: (code: string | null) => void;
 }
@@ -44,34 +37,21 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
     const [aiHtml, setAiHtml] = useState<string | null>(null);
     const [fallbackHtml, setFallbackHtml] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [output, setOutput] = useState<string | null>(null);
-    const [implementationCode, setImplementationCode] = useState<string | null>(null);
     const [pythonCode, setPythonCode] = useState<string | null>(null);
 
     const processBackendResponse = (data: DualAgentPayload) => {
         try {
-            console.log('DEBUG: processBackendResponse received:', JSON.stringify(data, null, 2));
+            if (data.ai_html !== undefined) setAiHtml(data.ai_html ?? null);
+            if (data.fallback_html !== undefined) setFallbackHtml(data.fallback_html ?? null);
+            if (data.python_code !== undefined) setPythonCode(data.python_code ?? null);
 
-            // Store ai_html and fallback_html in state for VisualizerPanel
-            if (data.ai_html !== undefined) {
-                setAiHtml(data.ai_html ?? null);
-            }
-            if (data.fallback_html !== undefined) {
-                setFallbackHtml(data.fallback_html ?? null);
-            }
-            if (data.python_code !== undefined) {
-                setPythonCode(data.python_code ?? null);
-            }
-
-            // Switch to visualizer tab whenever we have something to show
             if (data.ai_html || data.fallback_html) {
                 setVisualizationType('data_structure');
                 setActiveTab('visualizer');
             }
-
             setError(null);
         } catch (err) {
-            console.error('Error processing backend response:', err);
+            console.error('processBackendResponse error:', err);
             setError('Failed to process the response. Please try again.');
         }
     };
@@ -91,10 +71,6 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
             processBackendResponse,
             error,
             setError,
-            output,
-            setOutput,
-            implementationCode,
-            setImplementationCode,
             pythonCode,
             setPythonCode,
         }}>

@@ -1,18 +1,4 @@
-﻿"""
-Chat endpoint -- Dual-Agent Architecture
------------------------------------------
-POST /api/v1/chat/
-  Body:  { "prompt": "<user message>" }
-  Returns:
-  {
-    "type":          "data_structure",
-    "ai_html":       "<full HTML string | null>",
-    "fallback_html": "<hardcoded HTML string | null>",
-    "explanation":   "<text explanation from AI>"
-  }
-"""
-
-import json
+﻿import json
 import traceback
 from typing import Optional
 
@@ -24,8 +10,6 @@ from app.core.hardcoded_visualizers import HARDCODED_VISUALIZERS
 
 router = APIRouter()
 
-
-# --- Request / Response schemas -------------------------------------------
 
 class ChatRequest(BaseModel):
     prompt: str
@@ -39,20 +23,8 @@ class DualAgentResponse(BaseModel):
     python_code: Optional[str] = None
 
 
-# --- Helper: extract HTML from an AI payload ------------------------------
-
+# Normalises the various shapes the remote AI may return HTML in
 def _extract_ai_html(raw: object) -> Optional[str]:
-    """
-    The remote AI may return the HTML in several shapes.
-    We handle the most common ones and always fall back to None.
-
-    Accepted shapes:
-      1. A plain HTML string (starts with '<!DOCTYPE' or '<html')
-      2. A JSON-encoded string like '{"html": "<!DOCTYPE..."}'
-      3. code_blocks style: '{"code_blocks":[{"language":"html","code":"..."}]}'
-      4. A dict with an "html" key (already parsed)
-      5. Anything else -> None
-    """
     if raw is None:
         return None
 
@@ -83,13 +55,7 @@ def _extract_ai_html(raw: object) -> Optional[str]:
     return stripped if stripped else None
 
 
-# --- Helper: find the best fallback for a user query ---------------------
-
 def _find_fallback(query: str) -> Optional[str]:
-    """
-    Case-insensitive substring scan.  Longer keys are checked first so
-    "binary tree" beats "tree" etc.
-    """
     query_lower = query.lower()
     sorted_keys = sorted(HARDCODED_VISUALIZERS.keys(), key=len, reverse=True)
     for keyword in sorted_keys:
@@ -100,35 +66,15 @@ def _find_fallback(query: str) -> Optional[str]:
     return None
 
 
-# --- Main endpoint --------------------------------------------------------
-
 @router.post("/", response_model=DualAgentResponse)
 async def chat(request: ChatRequest):
-    """
-    Dual-Agent chat endpoint.
-
-    1. Calls the remote Ngrok/Kaggle agent to get ai_html + explanation.
-    2. Normalises the ai_html payload.
-    3. Searches the query for a matching hardcoded visualizer (fallback_html).
-    4. Returns a strictly typed JSON response.
-    """
     try:
-        print(f"DEBUG: Incoming prompt: {request.prompt[:120]}")
         agent_result = llm_service.generate_response(request.prompt)
 
-        explanation: str = agent_result.get(
-            "explanation",
-            "I could not generate a response at this time."
-        )
-        raw_ai_html = agent_result.get("ai_html", None)
-        python_code: Optional[str] = agent_result.get("python_code", None)
-
-        ai_html: Optional[str] = _extract_ai_html(raw_ai_html)
-        print(f"DEBUG: ai_html present: {ai_html is not None}")
-        print(f"DEBUG: python_code present: {python_code is not None}")
-
+        explanation: str = agent_result.get("explanation", "I could not generate a response at this time.")
+        ai_html: Optional[str] = _extract_ai_html(agent_result.get("ai_html"))
+        python_code: Optional[str] = agent_result.get("python_code")
         fallback_html: Optional[str] = _find_fallback(request.prompt)
-        print(f"DEBUG: fallback_html present: {fallback_html is not None}")
 
         return DualAgentResponse(
             type="data_structure",

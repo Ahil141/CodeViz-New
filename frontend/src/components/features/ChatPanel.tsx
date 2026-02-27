@@ -8,9 +8,6 @@ export const ChatPanel = () => {
                 <div className="p-1.5 bg-blue-500/10 rounded-lg">
                     <MessageSquare className="w-5 h-5 text-blue-400" />
                 </div>
-                <div>
-                    {/* Header Text Removed */}
-                </div>
             </div>
 
             <div className="flex-1 overflow-hidden">

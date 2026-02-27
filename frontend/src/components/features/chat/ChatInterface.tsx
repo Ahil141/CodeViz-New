@@ -51,10 +51,8 @@ export const ChatInterface = () => {
         setIsLoading(true);
 
         try {
-            // Call the Dual-Agent endpoint (non-streaming)
             const response = await api.sendMessage(promptText);
 
-            // Show the explanation text in the chat bubble
             const aiMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
@@ -63,7 +61,6 @@ export const ChatInterface = () => {
             };
             setMessages(prev => [...prev, aiMessage]);
 
-            // Pass ai_html + fallback_html + python_code to the visualizer context
             processBackendResponse({
                 ai_html:       response.ai_html,
                 fallback_html: response.fallback_html,
