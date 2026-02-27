@@ -32,9 +32,6 @@ export const CodeViz = () => {
                         {showEditor ? 'Hide Editor' : 'Show Editor'}
                     </button>
                 </div>
-                <div className="text-sm text-slate-400 font-medium">
-                    Draft Workspace
-                </div>
             </header>
 
             <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden h-[calc(100vh-56px)] bg-[#020617]">
