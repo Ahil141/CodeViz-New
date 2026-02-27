@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.main import api_router
-from app.api.endpoints import rag_endpoint
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -20,9 +19,6 @@ if settings.CORS_ORIGINS:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
-app.include_router(rag_endpoint.router, prefix=f"{settings.API_V1_STR}/rag", tags=["rag"])
-from app.api.endpoints import execute
-app.include_router(execute.router, prefix=f"{settings.API_V1_STR}/execute", tags=["execute"])
 
 @app.get("/health")
 def health_check():
