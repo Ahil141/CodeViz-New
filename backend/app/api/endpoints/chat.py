@@ -36,6 +36,7 @@ class DualAgentResponse(BaseModel):
     ai_html: Optional[str] = None
     fallback_html: Optional[str] = None
     explanation: str
+    python_code: Optional[str] = None
 
 
 # --- Helper: extract HTML from an AI payload ------------------------------
@@ -120,9 +121,11 @@ async def chat(request: ChatRequest):
             "I could not generate a response at this time."
         )
         raw_ai_html = agent_result.get("ai_html", None)
+        python_code: Optional[str] = agent_result.get("python_code", None)
 
         ai_html: Optional[str] = _extract_ai_html(raw_ai_html)
         print(f"DEBUG: ai_html present: {ai_html is not None}")
+        print(f"DEBUG: python_code present: {python_code is not None}")
 
         fallback_html: Optional[str] = _find_fallback(request.prompt)
         print(f"DEBUG: fallback_html present: {fallback_html is not None}")
@@ -132,6 +135,7 @@ async def chat(request: ChatRequest):
             ai_html=ai_html,
             fallback_html=fallback_html,
             explanation=explanation,
+            python_code=python_code,
         )
 
     except Exception as e:

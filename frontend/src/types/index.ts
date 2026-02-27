@@ -35,4 +35,6 @@ export interface DualAgentResponse {
     fallback_html: string | null;
     /** Plain-text explanation from the AI (always present). */
     explanation: string;
+    /** Python implementation code returned by the Dual-Agent, or null. */
+    python_code: string | null;
 }

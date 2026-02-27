@@ -46,3 +46,12 @@ class ChatResponse(BaseModel):
     
     # New feature: Actual code implementation for the DS/Algo
     implementation_code: Optional[CodeBlock] = None
+
+
+class DualAgentResponse(BaseModel):
+    """Response shape for the Dual-Agent architecture endpoint."""
+    type: str = "data_structure"
+    ai_html: Optional[str] = None
+    fallback_html: Optional[str] = None
+    explanation: str
+    python_code: Optional[str] = None

@@ -39,6 +39,7 @@ class DualAgentService:
             return {
                 "ai_html":     data.get("ai_html", None),
                 "explanation": data.get("explanation", "The AI returned an empty explanation."),
+                "python_code": data.get("python_code", None),
             }
 
         except requests.exceptions.ConnectionError:

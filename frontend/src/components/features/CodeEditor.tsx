@@ -11,7 +11,7 @@ const LANGUAGES = [
 ];
 
 export const CodeEditor = () => {
-    const { code, setCode, setOutput, setActiveTab, setVisualizationType } = useVisualization();
+    const { code, setCode, setOutput, setActiveTab, setVisualizationType, pythonCode } = useVisualization();
     const [language, setLanguage] = useState('python');
     const [localCode, setLocalCode] = useState(code);
     const [isRunning, setIsRunning] = useState(false);
@@ -24,6 +24,15 @@ export const CodeEditor = () => {
             setLanguage('html');
         }
     }, [code]);
+
+    // When the AI returns python_code, populate the editor with it
+    useEffect(() => {
+        if (pythonCode !== null && pythonCode !== undefined) {
+            setLocalCode(pythonCode);
+            setCode(pythonCode);
+            setLanguage('python');
+        }
+    }, [pythonCode, setCode]);
 
     const handleEditorChange = (val: string | undefined) => {
         const newValue = val || '';
@@ -101,7 +110,7 @@ export const CodeEditor = () => {
             {/* Editor Area */}
             <div className="flex-1 overflow-hidden relative">
                 <MonacoEditor
-                    code={localCode}
+                    code={localCode || '# Python implementation will appear here...'}
                     language={language}
                     onChange={handleEditorChange}
                 />

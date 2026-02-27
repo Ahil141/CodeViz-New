@@ -7,6 +7,7 @@ interface DualAgentPayload {
     fallback_html?: string | null;
     explanation?: string;
     type?: string;
+    python_code?: string | null;
 }
 
 interface VisualizationContextType {
@@ -29,6 +30,9 @@ interface VisualizationContextType {
     setOutput: (output: string | null) => void;
     implementationCode: string | null;
     setImplementationCode: (code: string | null) => void;
+    /** Python code returned by the Dual-Agent. */
+    pythonCode: string | null;
+    setPythonCode: (code: string | null) => void;
 }
 
 const VisualizationContext = createContext<VisualizationContextType | undefined>(undefined);
@@ -42,6 +46,7 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
     const [error, setError] = useState<string | null>(null);
     const [output, setOutput] = useState<string | null>(null);
     const [implementationCode, setImplementationCode] = useState<string | null>(null);
+    const [pythonCode, setPythonCode] = useState<string | null>(null);
 
     const processBackendResponse = (data: DualAgentPayload) => {
         try {
@@ -53,6 +58,9 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
             }
             if (data.fallback_html !== undefined) {
                 setFallbackHtml(data.fallback_html ?? null);
+            }
+            if (data.python_code !== undefined) {
+                setPythonCode(data.python_code ?? null);
             }
 
             // Switch to visualizer tab whenever we have something to show
@@ -87,6 +95,8 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
             setOutput,
             implementationCode,
             setImplementationCode,
+            pythonCode,
+            setPythonCode,
         }}>
             {children}
         </VisualizationContext.Provider>

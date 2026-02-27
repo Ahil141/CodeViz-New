@@ -63,12 +63,13 @@ export const ChatInterface = () => {
             };
             setMessages(prev => [...prev, aiMessage]);
 
-            // Pass ai_html + fallback_html to the visualizer context
+            // Pass ai_html + fallback_html + python_code to the visualizer context
             processBackendResponse({
                 ai_html:       response.ai_html,
                 fallback_html: response.fallback_html,
                 explanation:   response.explanation,
                 type:          response.type,
+                python_code:   response.python_code,
             });
 
         } catch (error) {
