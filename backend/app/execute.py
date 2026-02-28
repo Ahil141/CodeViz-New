@@ -15,7 +15,7 @@ def execute(request: ExecuteRequest):
     buffer = io.StringIO()
     try:
         sys.stdout = buffer
-        exec(request.code, {})  # noqa: S102
+        exec(request.code, {"__name__": "__main__"})
     except Exception as e:
         return {"output": f"Error: {str(e)}"}
     finally:
