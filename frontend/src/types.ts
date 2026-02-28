@@ -5,6 +5,7 @@ export interface Message {
     role: Role;
     content: string;
     timestamp: number;
+    pythonCode?: string;
 }
 
 export type VisualizationType = 'none' | 'html' | 'data_structure' | 'algorithm';

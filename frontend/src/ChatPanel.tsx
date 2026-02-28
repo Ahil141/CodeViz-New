@@ -1,5 +1,5 @@
 import { MessageSquare } from 'lucide-react';
-import { ChatInterface } from './chat/ChatInterface';
+import { ChatInterface } from './ChatInterface';
 
 export const ChatPanel = () => {
     return (

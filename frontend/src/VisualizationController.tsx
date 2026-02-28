@@ -26,6 +26,10 @@ interface VisualizationContextType {
     setError: (error: string | null) => void;
     pythonCode: string | null;
     setPythonCode: (code: string | null) => void;
+    showEditor: boolean;
+    setShowEditor: (show: boolean) => void;
+    output: string | null;
+    setOutput: (output: string | null) => void;
 }
 
 const VisualizationContext = createContext<VisualizationContextType | undefined>(undefined);
@@ -38,6 +42,8 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
     const [fallbackHtml, setFallbackHtml] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [pythonCode, setPythonCode] = useState<string | null>(null);
+    const [showEditor, setShowEditor] = useState(false);
+    const [output, setOutput] = useState<string | null>(null);
 
     const processBackendResponse = (data: DualAgentPayload) => {
         try {
@@ -73,6 +79,10 @@ export const VisualizationProvider = ({ children }: { children: ReactNode }) => 
             setError,
             pythonCode,
             setPythonCode,
+            showEditor,
+            setShowEditor,
+            output,
+            setOutput,
         }}>
             {children}
         </VisualizationContext.Provider>

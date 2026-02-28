@@ -1,6 +1,6 @@
-﻿import { Eye } from 'lucide-react';
+import { Eye } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useVisualization } from '../../services/VisualizationController';
+import { useVisualization } from './VisualizationController';
 
 // Injects an onerror tripwire so AI crashes fall back to the hardcoded visualizer
 function injectTripwire(html: string): string {
@@ -85,9 +85,19 @@ export const VisualizerPanel = () => {
         visualizationType,
         aiHtml,
         fallbackHtml,
+        output,
     } = useVisualization();
 
     const renderContent = () => {
+        if (visualizationType === 'output') {
+            return (
+                <div className="flex flex-col h-full bg-[#0d1117] font-mono text-sm">
+                    <pre className="flex-1 p-4 overflow-auto whitespace-pre-wrap text-green-400 text-xs leading-relaxed">
+                        {output || 'No output.'}
+                    </pre>
+                </div>
+            );
+        }
         if (aiHtml || fallbackHtml) {
             return <SandboxedVisualizer aiHtml={aiHtml} fallbackHtml={fallbackHtml} />;
         }

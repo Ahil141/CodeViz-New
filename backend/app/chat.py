@@ -1,12 +1,12 @@
-﻿import json
+import json
 import traceback
 from typing import Optional
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.services.llm_service import llm_service
-from app.core.hardcoded_visualizers import HARDCODED_VISUALIZERS
+from app.llm_service import llm_service
+from app.hardcoded_visualizers import HARDCODED_VISUALIZERS
 
 router = APIRouter()
 

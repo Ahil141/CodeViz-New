@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import homeBg from '../home_page/Home.jpeg';
+import homeBg from './assets/Home.jpeg';
 
 export const Home = () => {
     const navigate = useNavigate();

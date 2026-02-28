@@ -1,4 +1,4 @@
-import type { DualAgentResponse } from '../types';
+import type { DualAgentResponse } from './types';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -17,4 +17,3 @@ export const api = {
         return await response.json() as DualAgentResponse;
     },
 };
-

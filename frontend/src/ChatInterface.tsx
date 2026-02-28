@@ -1,9 +1,9 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, Loader2 } from 'lucide-react';
-import type { Message } from '../../../types';
-import { api } from '../../../services/api';
+import type { Message } from './types';
+import { api } from './api';
 import { ChatMessage } from './ChatMessage';
-import { useVisualization } from '../../../services/VisualizationController';
+import { useVisualization } from './VisualizationController';
 
 export const ChatInterface = () => {
     const [messages, setMessages] = useState<Message[]>([
@@ -58,6 +58,7 @@ export const ChatInterface = () => {
                 role: 'assistant',
                 content: response.explanation,
                 timestamp: Date.now(),
+                pythonCode: response.python_code ?? undefined,
             };
             setMessages(prev => [...prev, aiMessage]);
 

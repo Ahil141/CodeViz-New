@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Home } from './pages/Home';
-import { CodeViz } from './pages/CodeViz';
-import { VisualizationProvider } from './services/VisualizationController';
+import { Home } from './Home';
+import { CodeViz } from './CodeViz';
+import { VisualizationProvider } from './VisualizationController';
 
 function App() {
   return (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Code2 } from 'lucide-react';
-import { MonacoEditor } from '../../components/editor/MonacoEditor';
-import { useVisualization } from '../../services/VisualizationController';
+import { Code2, Play, Loader2 } from 'lucide-react';
+import { MonacoEditor } from './MonacoEditor';
+import { useVisualization } from './VisualizationController';
 
 const LANGUAGES = [
     { id: 'python', name: 'Python' },
@@ -11,9 +11,10 @@ const LANGUAGES = [
 ];
 
 export const CodeEditor = () => {
-    const { code, setCode, pythonCode } = useVisualization();
+    const { code, setCode, pythonCode, setOutput, setVisualizationType } = useVisualization();
     const [language, setLanguage] = useState('python');
     const [localCode, setLocalCode] = useState(code);
+    const [isRunning, setIsRunning] = useState(false);
 
     useEffect(() => {
         setLocalCode(code);
@@ -37,6 +38,25 @@ export const CodeEditor = () => {
         setCode(newValue);
     };
 
+    const handleRun = async () => {
+        setIsRunning(true);
+        try {
+            const res = await fetch('http://localhost:8000/api/v1/execute/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: localCode }),
+            });
+            const data = await res.json();
+            setOutput(data.output ?? '');
+            setVisualizationType('output');
+        } catch {
+            setOutput('Error: Failed to connect to execution server.');
+            setVisualizationType('output');
+        } finally {
+            setIsRunning(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-[#1e1e1e] text-white">
             <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#3e3e3e]">
@@ -56,6 +76,15 @@ export const CodeEditor = () => {
                         ))}
                     </select>
                 </div>
+
+                <button
+                    onClick={handleRun}
+                    disabled={isRunning}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors"
+                >
+                    {isRunning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                    {isRunning ? 'Running...' : 'Run'}
+                </button>
             </div>
 
             <div className="flex-1 overflow-hidden relative">

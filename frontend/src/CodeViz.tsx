@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { Code2 } from 'lucide-react';
-import { ChatPanel } from '../components/features/ChatPanel';
-import { CodeEditor } from '../components/features/CodeEditor';
-import { VisualizerPanel } from '../components/features/VisualizerPanel';
+import { ChatPanel } from './ChatPanel';
+import { CodeEditor } from './CodeEditor';
+import { VisualizerPanel } from './VisualizerPanel';
+import { useVisualization } from './VisualizationController';
 
 export const CodeViz = () => {
-    const [showEditor, setShowEditor] = useState(false);
+    const { showEditor, setShowEditor } = useVisualization();
 
     return (
         <div className="min-h-screen bg-[#020617] flex flex-col text-slate-100">
