@@ -23,7 +23,10 @@ class DualAgentService:
                 self.generate_endpoint,
                 json={"query": prompt},
                 timeout=300,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "69420"
+                },
             )
             resp.raise_for_status()
             data = resp.json()
