@@ -41,7 +41,8 @@ export const CodeEditor = () => {
     const handleRun = async () => {
         setIsRunning(true);
         try {
-            const res = await fetch('http://localhost:8000/api/v1/execute/', {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+            const res = await fetch(`${API_BASE_URL}/execute/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: localCode }),
