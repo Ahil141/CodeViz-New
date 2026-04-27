@@ -148,20 +148,23 @@ export const VisualizerPanel = () => {
                 </h2>
 
                 <div className="flex items-center gap-2">
+                    {/* ONLY show Pop Out button if we are previewing custom HTML */}
+                    {visualizationType === 'HTML Preview' && (aiHtml || fallbackHtml) && (
+                        <button
+                            onClick={openInNewTab}
+                            className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-2.5 py-1 rounded-md transition-colors border border-white/10"
+                            title="Open full screen in new tab"
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Pop Out</span>
+                        </button>
+                    )}
+                    
+                    {/* ALWAYS show Interactive badge if there is visualizer content */}
                     {(aiHtml || fallbackHtml) && (
-                        <>
-                            <button
-                                onClick={openInNewTab}
-                                className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-2.5 py-1 rounded-md transition-colors border border-white/10"
-                                title="Open full screen in new tab"
-                            >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                <span>Pop Out</span>
-                            </button>
-                            <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
-                                Interactive
-                            </span>
-                        </>
+                        <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
+                            Interactive
+                        </span>
                     )}
                 </div>
             </div>
