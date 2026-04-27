@@ -10,7 +10,7 @@ const LANGUAGES = [
 ];
 
 export const CodeEditor = () => {
-    const { code, setCode, pythonCode, setOutput, setVisualizationType } = useVisualization();
+    const { code, setCode, pythonCode, setOutput, setVisualizationType, setAiHtml, setFallbackHtml } = useVisualization();
     const [language, setLanguage] = useState('python');
     const [localCode, setLocalCode] = useState(code);
     const [isRunning, setIsRunning] = useState(false);
@@ -40,13 +40,11 @@ export const CodeEditor = () => {
     const handleRun = async () => {
         setIsRunning(true);
 
-        // 1. RUN HTML NATIVELY IN THE BROWSER
+        // 1. RUN HTML NATIVELY IN THE VISUALIZER PANEL
         if (language === 'html') {
-            const blob = new Blob([localCode], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank'); // Opens the HTML in a new browser tab!
-            setOutput("✅ HTML rendered successfully in a new tab!");
-            setVisualizationType('output');
+            setAiHtml(localCode); // Send code to the visualizer iframe
+            setFallbackHtml(null);
+            setVisualizationType('HTML Preview');
             setIsRunning(false);
             return;
         }

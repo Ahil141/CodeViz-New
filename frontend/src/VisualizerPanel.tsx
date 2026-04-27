@@ -1,4 +1,4 @@
-import { Eye } from 'lucide-react';
+import { Eye, ExternalLink } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useVisualization } from './VisualizationController';
 
@@ -88,6 +88,15 @@ export const VisualizerPanel = () => {
         output,
     } = useVisualization();
 
+    // NEW FUNCTION: Opens current visualizer code in a new tab
+    const openInNewTab = () => {
+        const currentHtml = aiHtml || fallbackHtml;
+        if (!currentHtml) return;
+        const blob = new Blob([currentHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    };
+
     const renderContent = () => {
         if (visualizationType === 'output') {
             return (
@@ -138,11 +147,23 @@ export const VisualizerPanel = () => {
                         : 'VISUALIZATION'}
                 </h2>
 
-                {(aiHtml || fallbackHtml) && (
-                    <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
-                        Interactive
-                    </span>
-                )}
+                <div className="flex items-center gap-2">
+                    {(aiHtml || fallbackHtml) && (
+                        <>
+                            <button
+                                onClick={openInNewTab}
+                                className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-2.5 py-1 rounded-md transition-colors border border-white/10"
+                                title="Open full screen in new tab"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>Pop Out</span>
+                            </button>
+                            <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full font-medium border border-blue-500/20">
+                                Interactive
+                            </span>
+                        </>
+                    )}
+                </div>
             </div>
 
             <div className="flex-1 overflow-hidden relative">
