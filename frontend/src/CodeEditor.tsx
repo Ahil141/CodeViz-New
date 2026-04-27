@@ -90,7 +90,7 @@ export const CodeEditor = () => {
 
             <div className="flex-1 overflow-hidden relative">
                 <MonacoEditor
-                    code={localCode || '# Python implementation will appear here...'}
+                    code={localCode ?? '# Python implementation will appear here...'}
                     language={language}
                     onChange={handleEditorChange}
                 />
