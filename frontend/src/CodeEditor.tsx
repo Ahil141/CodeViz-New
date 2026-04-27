@@ -6,8 +6,7 @@ import { useVisualization } from './VisualizationController';
 const LANGUAGES = [
     { id: 'python', name: 'Python' },
     { id: 'javascript', name: 'JavaScript' },
-    { id: 'html', name: 'HTML' },
-    { id: 'css', name: 'CSS' },
+    { id: 'html', name: 'HTML' }
 ];
 
 export const CodeEditor = () => {
