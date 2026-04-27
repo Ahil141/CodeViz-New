@@ -40,6 +40,41 @@ export const CodeEditor = () => {
 
     const handleRun = async () => {
         setIsRunning(true);
+
+        // 1. RUN HTML NATIVELY IN THE BROWSER
+        if (language === 'html') {
+            const blob = new Blob([localCode], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank'); // Opens the HTML in a new browser tab!
+            setOutput("✅ HTML rendered successfully in a new tab!");
+            setVisualizationType('output');
+            setIsRunning(false);
+            return;
+        }
+
+        // 2. RUN JAVASCRIPT NATIVELY IN THE BROWSER
+        if (language === 'javascript') {
+            try {
+                let jsOutput = "";
+                const originalLog = console.log;
+                // Temporarily hijack console.log to print to your output window
+                console.log = (...args) => { jsOutput += args.join(" ") + "\n"; };
+                
+                // Run the user's Javascript code
+                eval(localCode); 
+                
+                // Restore normal console.log
+                console.log = originalLog; 
+                setOutput(jsOutput || "✅ Script ran successfully (no output printed).");
+            } catch (err: any) {
+                setOutput(`❌ JavaScript Error: ${err.message}`);
+            }
+            setVisualizationType('output');
+            setIsRunning(false);
+            return;
+        }
+
+        // 3. RUN PYTHON VIA RENDER CLOUD BACKEND
         try {
             const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
             const res = await fetch(`${API_BASE_URL}/execute/`, {
